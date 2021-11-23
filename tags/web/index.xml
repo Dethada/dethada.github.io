@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Web on David Zhu | Blog</title><link>https://dzhy.dev/tags/web/</link><description>Recent content in Web on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 20 Jul 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/tags/web/index.xml" rel="self" type="application/rss+xml"/><item><title>SNI and ESNI</title><link>https://dzhy.dev/posts/2019-07-20-sni-esni/</link><pubDate>Sat, 20 Jul 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-07-20-sni-esni/</guid><description>Prelude I have a DNS resolver setup at home which my home devices use and set it to use DNS over TLS (DoT) to resolve queries so ISPs and such can&amp;rsquo;t see the domains I&amp;rsquo;m visiting, but SNI is leaking out the sites I&amp;rsquo;m visiting and there&amp;rsquo;s nothing much I can do about it for now. 😣
+What is the Purpose of SNI Problem Name-based virtual hosting allows multiple DNS hostnames to be hosted by a single server (usually a web server) on the same IP address.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>I have a DNS resolver setup at home which my home devices use and set it to use DNS over TLS (DoT) to resolve queries so ISPs and such can&rsquo;t see the domains I&rsquo;m visiting, but SNI is leaking out the sites I&rsquo;m visiting and there&rsquo;s nothing much I can do about it for now. 😣</p>
+<h2 id="what-is-the-purpose-of-sni">What is the Purpose of SNI</h2>
+<h3 id="problem">Problem</h3>
+<blockquote>
+<p>Name-based virtual hosting allows multiple DNS hostnames to be hosted by a single server (usually a web server) on the same IP address. To achieve this, the server uses a hostname presented by the client as part of the protocol (for HTTP the name is presented in the host header). <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">Source</a></p>
+</blockquote>
+<p>However, when using HTTPS, the TLS connection happens before the sending of any HTTP data, so we need another way of letting the server know which host we are connecting to so it can establish the TLS connection with the correct certificate.</p>
+<h3 id="solution">Solution</h3>
+<p>Server Name Indication (SNI) solves this by having the client send the hostname as part of the TLS handshake. This enables the server to establish the TLS connection with the correct certificate.</p>
+<p>The hostname sent during TLS handshake is not encrypted, so eavesdroppers for example ISPs can see which sites you are visiting.</p>
+<p>Here&rsquo;s a diagram to illustrate. 🔒 Means that it is encrypted.
+
+<div class="mermaid" align="center">
+sequenceDiagram
+    Client->>Server: ClientHello + SNI
+    Server->>Client: ServerHello
+    Client->>Server: Finished🔒
+    Client->>Server: HTTP Request🔒
+    Server->>Client: HTTP Response🔒
+</div>
+</p>
+<p>I have written a <a href="https://github.com/PotatoDrug/SNI-Sniffer">SNI Sniffer</a> (only tested on linux) to see this in effect, the code quality is pretty bad I&rsquo;ll update it when I have time.</p>
+<pre tabindex="0"><code>➜ sudo sni-sniffer -s eth0
+Started capturing on ens33
+TCP V4(192.168.14.128):50596 -&gt; V4(172.217.27.46):443
+SNI: [
+    &quot;google.com&quot;,
+]
+TCP V4(192.168.14.128):51262 -&gt; V4(117.18.232.200):443
+SNI: [
+    &quot;az764295.vo.msecnd.net&quot;,
+]
+TCP V4(192.168.14.128):45508 -&gt; V4(111.221.29.254):443
+SNI: [
+    &quot;vortex.data.microsoft.com&quot;,
+]
+TCP V4(192.168.14.128):40952 -&gt; V4(172.217.160.10):443
+SNI: [
+    &quot;safebrowsing.googleapis.com&quot;,
+]
+TCP V4(192.168.14.128):37934 -&gt; V4(35.166.72.120):443
+SNI: [
+    &quot;shavar.services.mozilla.com&quot;,
+]
+</code></pre><h2 id="esni">ESNI🔒</h2>
+<p>Encrypted SNI is an extension to TLS 1.3 and above which encrypts the SNI so eavesdroppers cannot see which sites you are visiting.</p>
+<!-- raw HTML omitted -->
+<p>The general idea of how ESNI works is the server publishes a public key on as a DNS record, which can be fetched by the client before connecting. The client then encrypts the SNI extension using a symmetric encryption key derived using the server&rsquo;s public key. The server can then decrypt it by deriving the same symmetric encryption key using it&rsquo;s private key.</p>
+<p>For now the only browser I know that supports ESNI is Firefox, but it is not enabled by default, you have to enable it yourself, by going to <code>about:config</code> and setting <code>network.security.esni.enabled</code> to true.</p>
+<p>The problem now is the server you are connecting to has to support ESNI as well, and there isn&rsquo;t much support for it software wise as the specifications for ESNI is still in draft. Even when the software support is there, most people are probably lazy to setup ESNI for their servers, currently the best/easiest solution is to use cloudflare as a reverse proxy as they have ESNI enabled by default.</p>
+<p>Hopefully specifications for ESNI will be firmed up soon and more sites and browsers will start using ESNI.</p>
+]]></content:encoded></item><item><title>CDDC 2019 Qualifiers Writeup</title><link>https://dzhy.dev/posts/2019-06-04-cddc-2019-qualifiers-writeup/</link><pubDate>Tue, 04 Jun 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-06-04-cddc-2019-qualifiers-writeup/</guid><description>This year&amp;rsquo;s CDDC Qualifiers was very different from the previous year which was more of an &amp;lsquo;red team&amp;rsquo; ctf, this year&amp;rsquo;s qualifiers is a jeopardy style ctf and it&amp;rsquo;s pretty focused on OSINT which I&amp;rsquo;m not really into, but anyways here are the writeups for some of the more interesting challenges I solved.
+[B-1] Fight the Binary Monster Category: OSINT_Blue
+Drats, we found an unknown executable that someone uploaded to one of our web servers.</description><content:encoded><![CDATA[<p>This year&rsquo;s CDDC Qualifiers was very different from the previous year which was more of an &lsquo;red team&rsquo; ctf, this year&rsquo;s qualifiers is a jeopardy style ctf and it&rsquo;s pretty focused on OSINT which I&rsquo;m not really into, but anyways here are the writeups for some of the more interesting challenges I solved.</p>
+<h2 id="b-1-fight-the-binary-monster">[B-1] Fight the Binary Monster</h2>
+<p>Category: OSINT_Blue</p>
+<blockquote>
+<p>Drats, we found an unknown executable that someone uploaded to one of our web servers. How weird, it seems to be make heavy reference to trees. Is the author some kind of environmentalist, perhaps?</p>
+</blockquote>
+<h3 id="solution">Solution</h3>
+<p>When we execute the binary it asks us for the domain it is accessing.</p>
+<pre tabindex="0"><code>&gt; .\tree_monster.exe
+What domain is being accessed by this executable file?
+</code></pre><p>If we grep for a common TLD <code>.com</code> in the binary, we find <code>pastebin.com</code> and 2 pastebin links.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/osint_blue/Fight the Binary Monster ➜ strings tree_monster.exe| grep <span style="color:#e6db74">&#39;\.com&#39;</span>
+https://pastebin.com/raw/EcrLPtRP
+https://pastebin.com/raw/v1cRRWEW
+pastebin.com
+</code></pre></div><p>Browsing to <code>https://pastebin.com/raw/v1cRRWEW</code> we get the word <code>post</code> repeated a lot times.</p>
+<pre tabindex="0"><code>post post post post post post post post post post post post post post post post post post post post post post post post post post post post
+</code></pre><p>Browsing to <code>https://pastebin.com/raw/EcrLPtRP</code> we get a tree. We see characters of the flag being the nodes of the tree, the previous pastebin link is a hint on using post order traversal to trasverse the tree to get the flag.
+<img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/tree.png" alt="tree"  />
+</p>
+<h3 id="flag">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${havesometrees}
+</code></pre><h2 id="funshop">FunShop</h2>
+<p>Category: Crypto</p>
+<blockquote>
+<p>Oops, I forgot what&rsquo;s the product code. Please help me to recover it!</p>
+<p><a href="http://funshop.cddc19q.ctf.sg/">http://funshop.cddc19q.ctf.sg/</a></p>
+</blockquote>
+<h3 id="solution-1">Solution</h3>
+<p>When we click get on fun ant or fun guy we can see it is sending a get request to <code>/page/transaction.php</code> with the corresponding prod_code as the parameter.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/funshop.png" alt="Challenge site"  />
+</p>
+<p>When we send one ourself we can see that it&rsquo;s hinting that there&rsquo;s a debug mode we can enable by supplying the <code>debug_mode=1</code> get parameter.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/crypto/FunShop ➜ curl <span style="color:#e6db74">&#39;http://funshop.cddc19q.ctf.sg/page/transaction.php?prod_code=94-04-3Q
+</span><span style="color:#e6db74">mM-ulP-c0z-k&#39;</span>
+&lt;!-- ?debug_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --&gt;
+Success: Actually, I<span style="color:#960050;background-color:#1e0010">&#39;</span>m not an ant. <span style="color:#e6db74">&#34;I am Groot. :P&#34;</span>
+</code></pre></div><p>When we supply the <code>debug_mode=1</code> get parameter, we get the source code of the <code>transcation.php</code>.
+<img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/funshop_sourcecode.png" alt="Source code"  />
+</p>
+<p>To get the flag we have to send a <code>prod_code</code> that is not <code>94-04-3QmM-ulP-c0z-k</code> or <code>W8-31-5053-0kX-QiL-1</code>, but to do this we need to know the private key, lucky for us this is an insecure implementation of a MAC which is vulnerable to hash length extension attack. We get a valid hash and we can append data to it and get the hash for the string with appended data, without having to know the private key. The only requirement for this attack is to know the length of the private key, which we can bruteforce.</p>
+<p>Solve script</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">import</span> hashpumpy
+<span style="color:#f92672">import</span> base64
+<span style="color:#f92672">import</span> requests
+<span style="color:#f92672">import</span> urllib
+
+url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://funshop.cddc19q.ctf.sg/page/transaction.php&#39;</span>
+r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">?prod_code=94-04-3QmM-ulP-c0z-k&#39;</span><span style="color:#f92672">.</span>format(url))
+transaction_hash <span style="color:#f92672">=</span> r<span style="color:#f92672">.</span>cookies[<span style="color:#e6db74">&#39;transaction_hash&#39;</span>]
+prod_code <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64decode(urllib<span style="color:#f92672">.</span>parse<span style="color:#f92672">.</span>unquote(r<span style="color:#f92672">.</span>cookies[<span style="color:#e6db74">&#39;prod_code&#39;</span>]))<span style="color:#f92672">.</span>decode()
+
+<span style="color:#75715e"># brute force the private key length</span>
+<span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">200</span>):
+    x <span style="color:#f92672">=</span> hashpumpy<span style="color:#f92672">.</span>hashpump(transaction_hash,
+        prod_code,
+        <span style="color:#e6db74">&#39;data_to_add&#39;</span>,
+        i)
+
+    new_hash <span style="color:#f92672">=</span> x[<span style="color:#ae81ff">0</span>]
+    crafted_data <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64encode(x[<span style="color:#ae81ff">1</span>])<span style="color:#f92672">.</span>decode()
+
+    cookies <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;prod_code&#39;</span>: crafted_data, <span style="color:#e6db74">&#39;transaction_hash&#39;</span>: new_hash}
+
+    r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(url, cookies<span style="color:#f92672">=</span>cookies)
+
+    <span style="color:#66d9ef">if</span> r<span style="color:#f92672">.</span>text <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;&lt;!-- ?debug_mode=1 --&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>:
+        print(<span style="color:#e6db74">&#39;PRIVATE_KEY length = </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(i, r<span style="color:#f92672">.</span>text))
+        exit()
+
+print(<span style="color:#e6db74">&#39;Failed&#39;</span>)
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/crypto/FunShop ➜ ./length_extension.py
+PRIVATE_KEY length <span style="color:#f92672">=</span> <span style="color:#ae81ff">14</span>
+&lt;!-- ?debug_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --&gt;
+$CDDC19<span style="color:#e6db74">${</span>Me0w_m30w_@wesome!_h0w_c@n_y0u_find_me?_FUNFUN<span style="color:#e6db74">}</span>
+</code></pre></div><h3 id="flag-1">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${Me0w_m30w_@wesome!_h0w_c@n_y0u_find_me?_FUNFUN}
+</code></pre><h2 id="lemonade">Lemonade</h2>
+<p>Category: Reverse</p>
+<blockquote>
+<p>If we need lemons to make lemonade&hellip; Then what about Lemonade.EXE?</p>
+</blockquote>
+<h3 id="solution-2">Solution</h3>
+<p>Looking at the strings in the binary I realized that it is a compiled AutoIT script.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/autoit.png" alt="Strings in the binary"  />
+</p>
+<p>Then I looked for a decompiler online and I found <a href="https://files.planet-dl.org/Cw2k/MyAutToExe/index.html">MyAut2EXE</a>.</p>
+<p>The tool found the version of AutoIT used to be <code>AutoIT v3.3.14.5</code>, and successfully decompiled it. Now we have the source code of the AutoIT script, and we can see the flag in plaintext in the code.</p>
+<pre tabindex="0"><code class="language-au3" data-lang="au3">LOCAL $INT1 = GUICTRLREAD($INPUT1)
+LOCAL $INT2 = GUICTRLREAD($INPUT2)
+IF $INT1 = &quot;&quot; OR $INT2 = &quot;&quot; THEN
+
+    MSGBOX(0, &quot;NOPEEEE&quot;, &quot;Please input numbers :)&quot;)
+ELSEIF $INT1 = 941228 AND $INT2 = 940628 THEN
+    MSGBOX(0, &quot;Congratulations XD!!&quot;, &quot;$CDDC19${easy_peasy_Autoit_squeezy}&quot;)
+ELSEIF NOT STRINGISINT($INT1) OR NOT STRINGISINT($INT2) THEN
+    MSGBOX(0, &quot;NOPEEEE&quot;, &quot;Only numbers allowed :(&quot;)
+ELSE
+    MSGBOX(0, &quot;Result!!&quot;, $INT1 + $INT2)
+</code></pre><h3 id="flag-2">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${easy_peasy_Autoit_squeezy}
+</code></pre><h2 id="_">\'_'/</h2>
+<p>Category: Web</p>
+<blockquote>
+<p>\'_'/</p>
+<p>http://가나다라마바사아자차카타파하.cddc19q.ctf.sg/</p>
+</blockquote>
+<h3 id="solution-3">Solution</h3>
+<p>When we browse to the site we are given the source code of the php file, I modified it for easier testing locally.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;1: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;    <span style="color:#75715e">// strting must start with _
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;2: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">stripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;   <span style="color:#75715e">// string must start with _
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;3: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strrpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;   <span style="color:#75715e">// last position of _ in string must be 0
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;4: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;  <span style="color:#75715e">// last position of _ in string must be 0
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;5: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strstr</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;6: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strpbrk</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;7: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/[a-z][0-9._]/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>])<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;8: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/ABCDEFGHIJKLMNOPQRSTUVWXYZ/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>])<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#a6e22e">print_r</span>($_GET);
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;=========================================================================&lt;br&gt;&#34;</span>;
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;1&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">stripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;2&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strrpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;3&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;4&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strstr</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;5&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strpbrk</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;6&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/[a-z][0-9._]/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>]) ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;7&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/ABCDEFGHIJKLMNOPQRSTUVWXYZ/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>]) ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;8&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">isset</span>($_GET[<span style="color:#e6db74">&#34;_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_&#34;</span>]) ) {
+    <span style="color:#66d9ef">if</span>( $_GET[<span style="color:#e6db74">&#39;_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_&#39;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;🚣‍♀️ 🚣🏻‍♀️ 🚣🏼‍♀️ 🚣🏽‍♀️ 🚣🏾‍♀️ 🚣🏿‍♀️ 🚣‍♂️ 🚣🏻‍♂️ 🚣🏼‍♂️ 🚣🏽‍♂️ 🚣🏾‍♂️ 🚣🏿‍♂️&#34;</span> ) {
+        <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;CTF{Flag}&#34;</span>;
+    } <span style="color:#66d9ef">else</span> {
+        <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Param value not correct&#34;</span>;
+    }
+}
+<span style="color:#66d9ef">else</span> {
+    <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Required param not set&#34;</span>;
+}
+<span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>After some testing we found out these 2 conditions has to be true.</p>
+<ol>
+<li>strting must start with _</li>
+<li>last position of _ in string must be 0</li>
+</ol>
+<p>Which is not possible if we want to set the get parameter <code>_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_</code>. Then it just hit me that the korean subdomain is a hint to the solution, url encoding. Since <code>$_SERVER[&quot;QUERY_STRING&quot;</code> gets the query string without parsing it, this should work.</p>
+<p>I used this Cyber Chef recipe to url encode <code>_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_</code>.</p>
+<pre tabindex="0"><code>To_Hex('Space')
+Find_/_Replace({'option':'Regex','string':'\\s'},'%',true,false,true,false)
+Find_/_Replace({'option':'Regex','string':'^'},'%',true,false,true,false)
+</code></pre><p>This is our payload url.</p>
+<pre tabindex="0"><code>http://가나다라마바사아자차카타파하.cddc19q.ctf.sg/?%5f%31%32%33%34%35%36%37%38%39%30%2d%41%42%43%44%45%46%47%48%49%4a%4b%4c%4d%4e%4f%50%51%52%53%54%55%56%57%58%59%5a%2d%71%77%65%72%74%79%75%69%6f%70%61%73%64%66%67%68%6a%6b%6c%7a%78%63%76%62%6e%6d%5f=🚣‍♀️ 🚣🏻‍♀️ 🚣🏼‍♀️ 🚣🏽‍♀️ 🚣🏾‍♀️ 🚣🏿‍♀️ 🚣‍♂️ 🚣🏻‍♂️ 🚣🏼‍♂️ 🚣🏽‍♂️ 🚣🏾‍♂️ 🚣🏿‍♂️
+</code></pre><p>Sure enought it worked.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/php_flag.png" alt=""  />
+</p>
+<h3 id="flag-3">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${PHP_tricks_are_very_fun!}
+</code></pre>]]></content:encoded></item></channel></rss>

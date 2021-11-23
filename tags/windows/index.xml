@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Windows on David Zhu | Blog</title><link>https://dzhy.dev/tags/windows/</link><description>Recent content in Windows on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 21 May 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/tags/windows/index.xml" rel="self" type="application/rss+xml"/><item><title>System32 Magic</title><link>https://dzhy.dev/posts/2019-05-21-system32-magic/</link><pubDate>Tue, 21 May 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-05-21-system32-magic/</guid><description>So I was using 32-bit python on windows and trying to read a binary in System32.
+with open(r&amp;#39;C:\Windows\System32\FileHistory.exe&amp;#39;, &amp;#39;rb&amp;#39;) as f: content = f.read() Then I was thrown the following error.
+This makes no sense, I know the file exists in System32.
+After some hair tearing and swearing, I figured it out. This error occurs because 32-bit applications are redirected to SysWOW64 when they try to access System32 and there is no FileHistory.</description><content:encoded><![CDATA[<p>So I was using <strong>32-bit</strong> python on windows and trying to read a binary in System32.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;C:\Windows\System32\FileHistory.exe&#39;</span>, <span style="color:#e6db74">&#39;rb&#39;</span>) <span style="color:#66d9ef">as</span> f:
+    content <span style="color:#f92672">=</span> f<span style="color:#f92672">.</span>read()
+</code></pre></div><p>Then I was thrown the following error.</p>
+<p><img loading="lazy" src="/2019-05-21-System32-Magic/error.jpg" alt="Ah shit, here we go again"  />
+</p>
+<p>This makes no sense, I know the file exists in System32.</p>
+<p>After some hair tearing and swearing, I figured it out. This error occurs because 32-bit applications are redirected to SysWOW64 when they try to access System32 and there is no <code>FileHistory.exe</code> in SysWOW64.</p>
+<p>To access the real System32 with 32-bit applications, replace System32 with Sysnative. Sysnative is a special alias that is only visible and accessible from 32-bit programs. So in this case I have to use the following path to actually read the file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;C:\Windows\Sysnative\FileHistory.exe&#39;</span>, <span style="color:#e6db74">&#39;rb&#39;</span>) <span style="color:#66d9ef">as</span> f:
+    content <span style="color:#f92672">=</span> f<span style="color:#f92672">.</span>read()
+</code></pre></div><h2 id="why">Why?</h2>
+<p>Microsoft wants to split the DLLs and other stuff used by 64-bit and 32-bit applications. 64-bit DLLs will be located in System32 because it is a hardcoded path by a lot of apps.</p>
+<p>Intuitively SysWOW64 seems like it should contain 64-bit stuff, but WOW64 stands for <em>Windows 32-bit on Windows 64-bit</em> so it actually contains 32-bit stuff.</p>
+<blockquote>
+<p>In computing on Microsoft platforms, WoW64 (Windows 32-bit on Windows 64-bit) is a subsystem of the Windows operating system capable of running 32-bit applications on 64-bit Windows.</p>
+</blockquote>
+<p>Why not keep 32-bit stuff in System32 and apply the redirection to 64-bit apps instead, and name the 64-bit folder something more intuitive like System64 so it won&rsquo;t be so confusing? Maybe Microsoft is in the forefront of implementing security by confusion.</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://www.samlogic.net/articles/sysnative-folder-64-bit-windows.htm">The &lsquo;Sysnative&rsquo; folder in 64-bit Windows explained</a></li>
+<li><a href="https://www.thewindowsclub.com/difference-system32-and-syswow64-folders">Difference between System32 and SysWOW64 folders in Windows 10</a></li>
+<li><a href="https://en.wikipedia.org/wiki/WoW64">WOW64</a></li>
+</ul>
+]]></content:encoded></item><item><title>Where are the Strings in Windows Binaries</title><link>https://dzhy.dev/posts/2019-05-04-where-are-the-strings-in-windows-binaries/</link><pubDate>Sat, 04 May 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-05-04-where-are-the-strings-in-windows-binaries/</guid><description>Prelude The Windows Binaries I&amp;rsquo;m talking about here are the ones that comes default with Windows provided by Microsoft.
+Searching for Strings in the binary I was analyzing a Windows binary C:\Windows\System32\where.exe when I realized the help text of the binary cannot be found anywhere in the binary.
+After some futher investigation using Process Monitor from Windows Sysinternals I found out that it is reading from C:\Windows\System32\en-US\where.exe.mui during it&amp;rsquo;s execution.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>The Windows Binaries I&rsquo;m talking about here are the ones that comes default with Windows provided by Microsoft.</p>
+<h2 id="searching-for-strings-in-the-binary">Searching for Strings in the binary</h2>
+<p>I was analyzing a Windows binary <code>C:\Windows\System32\where.exe</code> when I realized the help text of the binary cannot be found anywhere in the binary.</p>
+<p>After some futher investigation using <code>Process Monitor</code> from  Windows Sysinternals I found out that it is reading from <code>C:\Windows\System32\en-US\where.exe.mui</code> during it&rsquo;s execution.</p>
+<h2 id="searching-for-strings-in-the-mui">Searching for Strings in the MUI</h2>
+<p>I did some googling to find out more about the MUI file type and realized that it&rsquo;s how Windows enable support for different user interface languages.</p>
+<blockquote>
+<p>Multilingual User Interface (MUI) enables the localization of user interfaces for globalized applications. MUI also supports the creation of resources for any number of user interface languages.</p>
+</blockquote>
+<p>Further googling on how to open it says that it can be opened using 7zip, so I did and found the strings in <code>.rsrc\string.txt</code> in the archieve.</p>
+<pre tabindex="0"><code>52	Type &quot;WHERE /?&quot; for usage help.\n
+58	ERROR: Invalid directory specified.\n
+60	ERROR: &quot;$env:pattern&quot; cannot be used with /R.\n
+63	ERROR: Missing pattern in &quot;$env:pattern&quot;.\n
+64	INFO: Could not find &quot;%s&quot;.\n
+--------------------------snip--------------------------
+</code></pre><p>What&rsquo;s weird is when I ran linux&rsquo;s <code>strings</code> on the MUI file which did not manage to find the strings in the MUI file, so I initially thought that the MUI file is compressed.</p>
+<p>I then ran <code>file</code> on <code>where.exe.mui</code> and it returned <code>PE32 executable (DLL) (GUI) Intel 80386, for MS Windows</code>, I thought that&rsquo;s weird, so I tried opening the file in CFF Explorer and it worked! So a MUI file is actually a PE file.</p>
+<p>If we check the resource directories of <code>where.exe.mui</code> using CFF Explorer we can see a resource directory called <code>String Tables</code>. If we check the data within the Directory, we can find all the strings we previously seen using 7zip.</p>
+<p>The only thing that&rsquo;s weird was each character was followed by a null byte, which turns out to be because the strings are stored as unicode. Now it makes sense why linux&rsquo;s <code>strings</code> did not find anything, it does not search for unicode strings. I tried again with the <code>strings</code> tool from Windows Sysinternals and it managed to find the strings because it also searches for unicode strings.</p>
+<p>I also looked at <code>bash.exe.mui</code> and realized that the strings can also be in the <code>MESSAGETABLE</code> section of the resource directory, which have the ID of <code>0xb</code>.</p>
+<blockquote>
+<p>All the resource type can be found from the <a href="https://docs.microsoft.com/en-us/windows/desktop/menurc/resource-types">Microsoft Documentation</a>.</p>
+</blockquote>
+<h2 id="ending-notes">Ending Notes</h2>
+<p>Most of the Windows binaries does this, but not all, if you want to extract all the strings used by a Windows binary you should combine finding strings in the binary and the MUI.</p>
+<p>The strings can be in <code>STRING</code> (ID of <code>0x6</code>) and <code>MESSAGETABLE</code> (ID of <code>0xb</code>) section of the resource directory of the MUI file.</p>
+<p>I have made a <a href="https://github.com/PotatoDrug/MUI-Strings">tool in rust</a> to retrieve the strings from a MUI file.</p>
+]]></content:encoded></item></channel></rss>

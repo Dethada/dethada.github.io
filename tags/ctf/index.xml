@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>CTF on David Zhu | Blog</title><link>https://dzhy.dev/tags/ctf/</link><description>Recent content in CTF on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 14 Jun 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/tags/ctf/index.xml" rel="self" type="application/rss+xml"/><item><title>CDDC 2019 LSCVM Writeup</title><link>https://dzhy.dev/posts/2019-06-14-cddc-2019-lscvm-writeup/</link><pubDate>Fri, 14 Jun 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-06-14-cddc-2019-lscvm-writeup/</guid><description>This is actually a challenge from the qualifiers, but because this challenge will be used in the Finals again so we weren&amp;rsquo;t allowed to post about it until after the finals. More on that later, here&amp;rsquo;s the writeup.
+LSCVM: Immaculate Invasion DESCRIPTION
+During our recon on the notorious fools of LightSpeedCorp, we have discovered this service which runs on a really simple, tiny, trivial, virtual machine that they have created.</description><content:encoded><![CDATA[<p>This is actually a challenge from the qualifiers, but because this challenge will be used in the Finals again so we weren&rsquo;t allowed to post about it until after the finals. More on that <a href="#rant">later</a>, here&rsquo;s the writeup.</p>
+<h2 id="lscvm-immaculate-invasion">LSCVM: Immaculate Invasion</h2>
+<blockquote>
+<p>DESCRIPTION</p>
+<p>During our recon on the notorious fools of LightSpeedCorp, we have discovered this service which runs on a really simple, tiny, trivial, virtual machine that they have created. We are not sure of its purpose, but it certainly looks fun to play with.</p>
+<p><strong>lscvm-ii.cddc19q.ctf.sg 9001</strong></p>
+<p>IMPORTANT: We highly recommend you to fully understand this challenge as we will use this VM again in the Final.</p>
+</blockquote>
+<h3 id="solution">Solution</h3>
+<p>Looking at the strings in the binary, it looks like we are dealing with a Stack based vm, and those long strings are probably the instructions.</p>
+<p><img loading="lazy" src="/2019-06-14-CDDC-2019-LSCVM-Writeup/lscvm_strings.png" alt="Strings"  />
+</p>
+<p>If we try running it we&rsquo;ll get an error.</p>
+<pre tabindex="0"><code>cddc/re/LSCVM ➜ ./lscvm-ii
+[-] Flag file open error: No such file or directory
+</code></pre><p>We find the code that is throwing the error and we can see it is trying to read a file called flag.</p>
+<p><img loading="lazy" src="/2019-06-14-CDDC-2019-LSCVM-Writeup/read_flag.png" alt="Read flag"  />
+</p>
+<p>Let&rsquo;s create a file called flag to fix this error.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">echo <span style="color:#e6db74">&#39;CTF{flag}&#39;</span> &gt; flag
+</code></pre></div><p>Now when we run it we can see that it asks us for an ID which we have to figure out.</p>
+<pre tabindex="0"><code>cddc/re/LSCVM ➜ ./lscvm-ii
+
+=== Welcome to LSCVM(LightSpeed Corp Virtual Machine) ===
+
+ID : 1
+[-] Wrong id
+</code></pre><p>After doing some analysis, I figured out that if argc is 2 the program will print out &lsquo;debug&rsquo; information.</p>
+<pre tabindex="0"><code>cddc/re/LSCVM ➜ ./lscvm-ii a
+@0 c [ 02 ]
+@1 f [ 02 05 ]
+@2 M [ 0a ]
+@3 c [ 0a 02 ]
+@4 f [ 0a 02 05 ]
+@5 M [ 0a 0a ]
+@6 h [ 0a 0a 07 ]
+@7 i [ 0a 0a 07 08 ]
+@8 M [ 0a 0a 38 ]
+@9 f [ 0a 0a 38 05 ]
+@10 A [ 0a 0a 3d ]
+.
+.
+.
+</code></pre><p>The information can be interpreted this way.</p>
+<table>
+<thead>
+<tr>
+<th>Instruction pointer</th>
+<th>instruction</th>
+<th>output</th>
+<th>Stack after running instruction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@0</td>
+<td>c</td>
+<td></td>
+<td>[ 02 ]</td>
+</tr>
+<tr>
+<td>@1</td>
+<td>f</td>
+<td></td>
+<td>[ 02 05 ]</td>
+</tr>
+<tr>
+<td>@2</td>
+<td>M</td>
+<td></td>
+<td>[ 0a ]</td>
+</tr>
+</tbody>
+</table>
+<p>Using the debug output and static analysis, I was able to recover the whole instruction set.</p>
+<table>
+<thead>
+<tr>
+<th>Opcode (Hex)</th>
+<th>Opcode (Char)</th>
+<th>Assmebly</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default</td>
+<td>NIL</td>
+<td>nop</td>
+<td>no operation, waste cycle</td>
+</tr>
+<tr>
+<td>0x0a</td>
+<td>\n</td>
+<td>nop</td>
+<td>no operation, waste cycle</td>
+</tr>
+<tr>
+<td>0x20</td>
+<td>\s</td>
+<td>nop</td>
+<td>no operation, waste cycle</td>
+</tr>
+<tr>
+<td>0x41</td>
+<td>A</td>
+<td>add</td>
+<td>Pop 2 values from stack and push the addition</td>
+</tr>
+<tr>
+<td>0x42</td>
+<td>B</td>
+<td>hlt</td>
+<td>Stop executing code</td>
+</tr>
+<tr>
+<td>0x43</td>
+<td>C</td>
+<td>jmp</td>
+<td>Pop and jump to value</td>
+</tr>
+<tr>
+<td>0x44</td>
+<td>D</td>
+<td>pop</td>
+<td>Pop a value and do nothing</td>
+</tr>
+<tr>
+<td>0x45</td>
+<td>E</td>
+<td>read</td>
+<td>Pop addr and push val. <code>0</code> &lt;= addr &lt;= <code>0x3fff</code></td>
+</tr>
+<tr>
+<td>0x46</td>
+<td>F</td>
+<td>sclone</td>
+<td>pop value n and (clone) push n+1 th previous stack value</td>
+</tr>
+<tr>
+<td>0x47</td>
+<td>G</td>
+<td>ipadd</td>
+<td>Pop value and add it to IP (Instruction Pointer)</td>
+</tr>
+<tr>
+<td>0x48</td>
+<td>H</td>
+<td>sshift</td>
+<td>pop value n and shift n+1 th previous stack value to the top of the stack</td>
+</tr>
+<tr>
+<td>0x49</td>
+<td>I</td>
+<td>pint</td>
+<td>Pop value and Print as int</td>
+</tr>
+<tr>
+<td>0x4a</td>
+<td>J</td>
+<td>cmp</td>
+<td>pop 2 values and push 0 if equal, 1 if first pop is smaller else -1. <code>0</code></td>
+</tr>
+<tr>
+<td>0x4b</td>
+<td>K</td>
+<td>write</td>
+<td>first pop is addr, 2nd pop is value to write</td>
+</tr>
+<tr>
+<td>0x4d</td>
+<td>M</td>
+<td>mul</td>
+<td>Pop 2 values from stack and push the multiplication</td>
+</tr>
+<tr>
+<td>0x50</td>
+<td>P</td>
+<td>pchar</td>
+<td>Pops value from stack and print as char</td>
+</tr>
+<tr>
+<td>0x52</td>
+<td>R</td>
+<td>rjmp</td>
+<td>Jump to previous jump location, cant do twice in a row, because it consumes the previous jump location.</td>
+</tr>
+<tr>
+<td>0x53</td>
+<td>S</td>
+<td>sub</td>
+<td>subtract 1st pop from 2nd pop push result</td>
+</tr>
+<tr>
+<td>0x56</td>
+<td>V</td>
+<td>div</td>
+<td>Divide (floor) 2nd pop by 1st pop and push result</td>
+</tr>
+<tr>
+<td>0x5a</td>
+<td>Z</td>
+<td>ipcadd</td>
+<td>conditional add to IP, if 2nd pop is 0, add 1st pop to IP</td>
+</tr>
+<tr>
+<td>0x61</td>
+<td>a</td>
+<td>p0</td>
+<td>Push 0x00 to stack</td>
+</tr>
+<tr>
+<td>0x62</td>
+<td>b</td>
+<td>p1</td>
+<td>Push 0x01 to stack</td>
+</tr>
+<tr>
+<td>0x63</td>
+<td>c</td>
+<td>p2</td>
+<td>Push 0x02 to stack</td>
+</tr>
+<tr>
+<td>0x64</td>
+<td>d</td>
+<td>p3</td>
+<td>Push 0x03 to stack</td>
+</tr>
+<tr>
+<td>0x65</td>
+<td>e</td>
+<td>p4</td>
+<td>Push 0x04 to stack</td>
+</tr>
+<tr>
+<td>0x66</td>
+<td>f</td>
+<td>p5</td>
+<td>Push 0x05 to stack</td>
+</tr>
+<tr>
+<td>0x67</td>
+<td>g</td>
+<td>p6</td>
+<td>Push 0x06 to stack</td>
+</tr>
+<tr>
+<td>0x68</td>
+<td>h</td>
+<td>p7</td>
+<td>Push 0x07 to stack</td>
+</tr>
+<tr>
+<td>0x69</td>
+<td>i</td>
+<td>p8</td>
+<td>Push 0x08 to stack</td>
+</tr>
+<tr>
+<td>0x6a</td>
+<td>j</td>
+<td>p9</td>
+<td>Push 0x09 to stack</td>
+</tr>
+</tbody>
+</table>
+<p>The input we are giving the program is actually being executed by the vm as code.</p>
+<p>To get the flag, we have to provide the vm with code that will write <code>lsc_user</code> to the vm memory, and then provide another code that will write <code>hi_darkspeed-corp!</code> to the vm memory.</p>
+<p><img loading="lazy" src="/2019-06-14-CDDC-2019-LSCVM-Writeup/get_flag.png" alt="Get flag conditions"  />
+</p>
+<p>Using the instruction set recovered I wrote this script to generate the vm code required to write the strings to memory and submit it to the service.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">import</span> socket
+
+nums <span style="color:#f92672">=</span> {
+<span style="color:#ae81ff">0x00</span>:<span style="color:#e6db74">&#39;a&#39;</span>,
+<span style="color:#ae81ff">0x01</span>:<span style="color:#e6db74">&#39;b&#39;</span>,
+<span style="color:#ae81ff">0x02</span>:<span style="color:#e6db74">&#39;c&#39;</span>,
+<span style="color:#ae81ff">0x03</span>:<span style="color:#e6db74">&#39;d&#39;</span>,
+<span style="color:#ae81ff">0x04</span>:<span style="color:#e6db74">&#39;e&#39;</span>,
+<span style="color:#ae81ff">0x05</span>:<span style="color:#e6db74">&#39;f&#39;</span>,
+<span style="color:#ae81ff">0x06</span>:<span style="color:#e6db74">&#39;g&#39;</span>,
+<span style="color:#ae81ff">0x07</span>:<span style="color:#e6db74">&#39;h&#39;</span>,
+<span style="color:#ae81ff">0x08</span>:<span style="color:#e6db74">&#39;i&#39;</span>,
+<span style="color:#ae81ff">0x09</span>:<span style="color:#e6db74">&#39;j&#39;</span>,
+<span style="color:#ae81ff">0x0a</span>:<span style="color:#e6db74">&#39;jbA&#39;</span>,
+<span style="color:#ae81ff">0x0b</span>:<span style="color:#e6db74">&#39;jcA&#39;</span>,
+<span style="color:#ae81ff">0x0c</span>:<span style="color:#e6db74">&#39;jdA&#39;</span>,
+<span style="color:#ae81ff">0x0d</span>:<span style="color:#e6db74">&#39;jeA&#39;</span>,
+<span style="color:#ae81ff">0x0e</span>:<span style="color:#e6db74">&#39;jfA&#39;</span>,
+<span style="color:#ae81ff">0x0f</span>:<span style="color:#e6db74">&#39;jgA&#39;</span>,
+<span style="color:#ae81ff">0x10</span>:<span style="color:#e6db74">&#39;jhA&#39;</span>,
+<span style="color:#ae81ff">0x11</span>:<span style="color:#e6db74">&#39;jiA&#39;</span>,
+<span style="color:#ae81ff">0x12</span>:<span style="color:#e6db74">&#39;jjA&#39;</span>,
+<span style="color:#ae81ff">0x21</span>:<span style="color:#e6db74">&#39;eiMbA&#39;</span>,
+<span style="color:#ae81ff">0x2d</span>:<span style="color:#e6db74">&#39;jfM&#39;</span>,
+<span style="color:#ae81ff">0x5f</span>:<span style="color:#e6db74">&#39;jjMchMA&#39;</span>,
+<span style="color:#ae81ff">0x61</span>:<span style="color:#e6db74">&#39;jjMcjMAcS&#39;</span>,
+<span style="color:#ae81ff">0x63</span>:<span style="color:#e6db74">&#39;jjMcjMA&#39;</span>,
+<span style="color:#ae81ff">0x64</span>:<span style="color:#e6db74">&#39;jjMcjMAbA&#39;</span>,
+<span style="color:#ae81ff">0x65</span>:<span style="color:#e6db74">&#39;jjMcjMAcA&#39;</span>,
+<span style="color:#ae81ff">0x68</span>:<span style="color:#e6db74">&#39;jjMdhMcAA&#39;</span>,
+<span style="color:#ae81ff">0x69</span>:<span style="color:#e6db74">&#39;jjMdhMdAA&#39;</span>,
+<span style="color:#ae81ff">0x6b</span>:<span style="color:#e6db74">&#39;jjMdjMAbS&#39;</span>,
+<span style="color:#ae81ff">0x6c</span>:<span style="color:#e6db74">&#39;jjMdjMA&#39;</span>,
+<span style="color:#ae81ff">0x6f</span>:<span style="color:#e6db74">&#39;jjMdjMAdA&#39;</span>,
+<span style="color:#ae81ff">0x70</span>:<span style="color:#e6db74">&#39;jjMfhMeSA&#39;</span>,
+<span style="color:#ae81ff">0x72</span>:<span style="color:#e6db74">&#39;jjMfhMcSA&#39;</span>,
+<span style="color:#ae81ff">0x73</span>:<span style="color:#e6db74">&#39;jjMfhMbSA&#39;</span>,
+<span style="color:#ae81ff">0x75</span>:<span style="color:#e6db74">&#39;jjMfhMbAA&#39;</span>}
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">write_str</span>(target):
+    output <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(target)):
+        output <span style="color:#f92672">+=</span> nums[ord(target[i])] <span style="color:#f92672">+</span> nums[i]
+
+    <span style="color:#66d9ef">return</span> output <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;K&#39;</span> <span style="color:#f92672">*</span> len(target)
+
+id_code <span style="color:#f92672">=</span> write_str(<span style="color:#e6db74">&#39;lsc_user&#39;</span>)
+pass_code <span style="color:#f92672">=</span> write_str(<span style="color:#e6db74">&#39;hi_darkspeed-corp!&#39;</span>)
+print(<span style="color:#e6db74">&#39;ID: </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Password: </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(id_code, pass_code))
+
+print(<span style="color:#e6db74">&#39;Connecting to service...&#39;</span>)
+client<span style="color:#f92672">=</span>socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET,socket<span style="color:#f92672">.</span>SOCK_STREAM)
+client<span style="color:#f92672">.</span>connect((<span style="color:#e6db74">&#39;lscvm-ii.cddc19q.ctf.sg&#39;</span>,<span style="color:#ae81ff">9001</span>))
+client<span style="color:#f92672">.</span>sendall(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(id_code)<span style="color:#f92672">.</span>encode())
+client<span style="color:#f92672">.</span>sendall(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(pass_code)<span style="color:#f92672">.</span>encode())
+<span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+    msg <span style="color:#f92672">=</span> client<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)<span style="color:#f92672">.</span>decode()
+    <span style="color:#66d9ef">if</span> msg:
+        print(msg)
+        <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;$CDDC19${&#39;</span> <span style="color:#f92672">in</span> msg:
+            client<span style="color:#f92672">.</span>close()
+            <span style="color:#66d9ef">break</span>
+</code></pre></div><pre tabindex="0"><code>cddc/re/LSCVM ➜ ./solve.py
+ID: jjMdjMAajjMfhMbSAbjjMcjMAcjjMchMAdjjMfhMbAAejjMfhMbSAfjjMcjMAcAgjjMfhMcSAhKKKKKKKK
+Password: jjMdhMcAAajjMdhMdAAbjjMchMAcjjMcjMAbAdjjMcjMAcSejjMfhMcSAfjjMdjMAbSgjjMfhMbSAhjjMfhMeSA
+ijjMcjMAcAjjjMcjMAcAjbAjjMcjMAbAjcAjfMjdAjjMcjMAjeAjjMdjMAdAjfAjjMfhMcSAjgAjjMfhMeSAjhAeiMbAjiAKK
+KKKKKKKKKKKKKKKK
+
+Connecting to service...
+
+
+=== Welcome to LSCVM(LightSpeed Corp Virtual Machine) ===
+
+ID : Password :
+Login Successful! $CDDC19${IcY_GrE37ings_Fr0M_LigHT5pEeDC0Rp}
+
+lsc_user, Good Bye!
+</code></pre><h3 id="flag">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${IcY_GrE37ings_Fr0M_LigHT5pEeDC0Rp}
+</code></pre><h2 id="rant">Rant</h2>
+<p>The organizers stated in the qualifiers LSCVM challenges that it is important to fully understand the VM as it will be used again in the Finals.</p>
+<blockquote>
+<p>IMPORTANT: We highly recommend you to fully understand this challenge as we will use this VM again in the Final.</p>
+</blockquote>
+<p>The way they brought this accross made me think that it will play a big part in the finals, so I built a <a href="https://github.com/PotatoDrug/LSCVM-Tool">tool</a> for the purpose of working on LSCVM challenge(s) during the Finals. However LSCVM was not a big part of the Finals and I didn&rsquo;t get to use my tool at all.</p>
+<p>The finals also had Rings where you have to solve a certain number of challenges to unlock the next ring. Personally I don&rsquo;t think the rings concept is a good idea, because what if it just so happens the participant can&rsquo;t solve the starting challenges but they can solve the ones in the next or next next ring? I would&rsquo;ve preferred it if the challenges were all available at the start.</p>
+<p>I understand that it was implemented to limit the number of teams that can attempt the hardware challenges because they don&rsquo;t have enought equipment for everyone to attempt at the same time, but this can also be done by only unlocking the hardware challenges once a team reach a certain number of points/solves, instead of implementing Rings.</p>
+<p>There&rsquo;s not gonna be any writeup for the finals challenges cause I did everything on the provided laptop and didn&rsquo;t transfer the files out.</p>
+]]></content:encoded></item><item><title>CDDC 2019 Qualifiers Writeup</title><link>https://dzhy.dev/posts/2019-06-04-cddc-2019-qualifiers-writeup/</link><pubDate>Tue, 04 Jun 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-06-04-cddc-2019-qualifiers-writeup/</guid><description>This year&amp;rsquo;s CDDC Qualifiers was very different from the previous year which was more of an &amp;lsquo;red team&amp;rsquo; ctf, this year&amp;rsquo;s qualifiers is a jeopardy style ctf and it&amp;rsquo;s pretty focused on OSINT which I&amp;rsquo;m not really into, but anyways here are the writeups for some of the more interesting challenges I solved.
+[B-1] Fight the Binary Monster Category: OSINT_Blue
+Drats, we found an unknown executable that someone uploaded to one of our web servers.</description><content:encoded><![CDATA[<p>This year&rsquo;s CDDC Qualifiers was very different from the previous year which was more of an &lsquo;red team&rsquo; ctf, this year&rsquo;s qualifiers is a jeopardy style ctf and it&rsquo;s pretty focused on OSINT which I&rsquo;m not really into, but anyways here are the writeups for some of the more interesting challenges I solved.</p>
+<h2 id="b-1-fight-the-binary-monster">[B-1] Fight the Binary Monster</h2>
+<p>Category: OSINT_Blue</p>
+<blockquote>
+<p>Drats, we found an unknown executable that someone uploaded to one of our web servers. How weird, it seems to be make heavy reference to trees. Is the author some kind of environmentalist, perhaps?</p>
+</blockquote>
+<h3 id="solution">Solution</h3>
+<p>When we execute the binary it asks us for the domain it is accessing.</p>
+<pre tabindex="0"><code>&gt; .\tree_monster.exe
+What domain is being accessed by this executable file?
+</code></pre><p>If we grep for a common TLD <code>.com</code> in the binary, we find <code>pastebin.com</code> and 2 pastebin links.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/osint_blue/Fight the Binary Monster ➜ strings tree_monster.exe| grep <span style="color:#e6db74">&#39;\.com&#39;</span>
+https://pastebin.com/raw/EcrLPtRP
+https://pastebin.com/raw/v1cRRWEW
+pastebin.com
+</code></pre></div><p>Browsing to <code>https://pastebin.com/raw/v1cRRWEW</code> we get the word <code>post</code> repeated a lot times.</p>
+<pre tabindex="0"><code>post post post post post post post post post post post post post post post post post post post post post post post post post post post post
+</code></pre><p>Browsing to <code>https://pastebin.com/raw/EcrLPtRP</code> we get a tree. We see characters of the flag being the nodes of the tree, the previous pastebin link is a hint on using post order traversal to trasverse the tree to get the flag.
+<img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/tree.png" alt="tree"  />
+</p>
+<h3 id="flag">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${havesometrees}
+</code></pre><h2 id="funshop">FunShop</h2>
+<p>Category: Crypto</p>
+<blockquote>
+<p>Oops, I forgot what&rsquo;s the product code. Please help me to recover it!</p>
+<p><a href="http://funshop.cddc19q.ctf.sg/">http://funshop.cddc19q.ctf.sg/</a></p>
+</blockquote>
+<h3 id="solution-1">Solution</h3>
+<p>When we click get on fun ant or fun guy we can see it is sending a get request to <code>/page/transaction.php</code> with the corresponding prod_code as the parameter.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/funshop.png" alt="Challenge site"  />
+</p>
+<p>When we send one ourself we can see that it&rsquo;s hinting that there&rsquo;s a debug mode we can enable by supplying the <code>debug_mode=1</code> get parameter.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/crypto/FunShop ➜ curl <span style="color:#e6db74">&#39;http://funshop.cddc19q.ctf.sg/page/transaction.php?prod_code=94-04-3Q
+</span><span style="color:#e6db74">mM-ulP-c0z-k&#39;</span>
+&lt;!-- ?debug_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --&gt;
+Success: Actually, I<span style="color:#960050;background-color:#1e0010">&#39;</span>m not an ant. <span style="color:#e6db74">&#34;I am Groot. :P&#34;</span>
+</code></pre></div><p>When we supply the <code>debug_mode=1</code> get parameter, we get the source code of the <code>transcation.php</code>.
+<img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/funshop_sourcecode.png" alt="Source code"  />
+</p>
+<p>To get the flag we have to send a <code>prod_code</code> that is not <code>94-04-3QmM-ulP-c0z-k</code> or <code>W8-31-5053-0kX-QiL-1</code>, but to do this we need to know the private key, lucky for us this is an insecure implementation of a MAC which is vulnerable to hash length extension attack. We get a valid hash and we can append data to it and get the hash for the string with appended data, without having to know the private key. The only requirement for this attack is to know the length of the private key, which we can bruteforce.</p>
+<p>Solve script</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">import</span> hashpumpy
+<span style="color:#f92672">import</span> base64
+<span style="color:#f92672">import</span> requests
+<span style="color:#f92672">import</span> urllib
+
+url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://funshop.cddc19q.ctf.sg/page/transaction.php&#39;</span>
+r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">?prod_code=94-04-3QmM-ulP-c0z-k&#39;</span><span style="color:#f92672">.</span>format(url))
+transaction_hash <span style="color:#f92672">=</span> r<span style="color:#f92672">.</span>cookies[<span style="color:#e6db74">&#39;transaction_hash&#39;</span>]
+prod_code <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64decode(urllib<span style="color:#f92672">.</span>parse<span style="color:#f92672">.</span>unquote(r<span style="color:#f92672">.</span>cookies[<span style="color:#e6db74">&#39;prod_code&#39;</span>]))<span style="color:#f92672">.</span>decode()
+
+<span style="color:#75715e"># brute force the private key length</span>
+<span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">200</span>):
+    x <span style="color:#f92672">=</span> hashpumpy<span style="color:#f92672">.</span>hashpump(transaction_hash,
+        prod_code,
+        <span style="color:#e6db74">&#39;data_to_add&#39;</span>,
+        i)
+
+    new_hash <span style="color:#f92672">=</span> x[<span style="color:#ae81ff">0</span>]
+    crafted_data <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64encode(x[<span style="color:#ae81ff">1</span>])<span style="color:#f92672">.</span>decode()
+
+    cookies <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;prod_code&#39;</span>: crafted_data, <span style="color:#e6db74">&#39;transaction_hash&#39;</span>: new_hash}
+
+    r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(url, cookies<span style="color:#f92672">=</span>cookies)
+
+    <span style="color:#66d9ef">if</span> r<span style="color:#f92672">.</span>text <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;&lt;!-- ?debug_mode=1 --&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>:
+        print(<span style="color:#e6db74">&#39;PRIVATE_KEY length = </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(i, r<span style="color:#f92672">.</span>text))
+        exit()
+
+print(<span style="color:#e6db74">&#39;Failed&#39;</span>)
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/crypto/FunShop ➜ ./length_extension.py
+PRIVATE_KEY length <span style="color:#f92672">=</span> <span style="color:#ae81ff">14</span>
+&lt;!-- ?debug_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --&gt;
+$CDDC19<span style="color:#e6db74">${</span>Me0w_m30w_@wesome!_h0w_c@n_y0u_find_me?_FUNFUN<span style="color:#e6db74">}</span>
+</code></pre></div><h3 id="flag-1">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${Me0w_m30w_@wesome!_h0w_c@n_y0u_find_me?_FUNFUN}
+</code></pre><h2 id="lemonade">Lemonade</h2>
+<p>Category: Reverse</p>
+<blockquote>
+<p>If we need lemons to make lemonade&hellip; Then what about Lemonade.EXE?</p>
+</blockquote>
+<h3 id="solution-2">Solution</h3>
+<p>Looking at the strings in the binary I realized that it is a compiled AutoIT script.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/autoit.png" alt="Strings in the binary"  />
+</p>
+<p>Then I looked for a decompiler online and I found <a href="https://files.planet-dl.org/Cw2k/MyAutToExe/index.html">MyAut2EXE</a>.</p>
+<p>The tool found the version of AutoIT used to be <code>AutoIT v3.3.14.5</code>, and successfully decompiled it. Now we have the source code of the AutoIT script, and we can see the flag in plaintext in the code.</p>
+<pre tabindex="0"><code class="language-au3" data-lang="au3">LOCAL $INT1 = GUICTRLREAD($INPUT1)
+LOCAL $INT2 = GUICTRLREAD($INPUT2)
+IF $INT1 = &quot;&quot; OR $INT2 = &quot;&quot; THEN
+
+    MSGBOX(0, &quot;NOPEEEE&quot;, &quot;Please input numbers :)&quot;)
+ELSEIF $INT1 = 941228 AND $INT2 = 940628 THEN
+    MSGBOX(0, &quot;Congratulations XD!!&quot;, &quot;$CDDC19${easy_peasy_Autoit_squeezy}&quot;)
+ELSEIF NOT STRINGISINT($INT1) OR NOT STRINGISINT($INT2) THEN
+    MSGBOX(0, &quot;NOPEEEE&quot;, &quot;Only numbers allowed :(&quot;)
+ELSE
+    MSGBOX(0, &quot;Result!!&quot;, $INT1 + $INT2)
+</code></pre><h3 id="flag-2">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${easy_peasy_Autoit_squeezy}
+</code></pre><h2 id="_">\'_'/</h2>
+<p>Category: Web</p>
+<blockquote>
+<p>\'_'/</p>
+<p>http://가나다라마바사아자차카타파하.cddc19q.ctf.sg/</p>
+</blockquote>
+<h3 id="solution-3">Solution</h3>
+<p>When we browse to the site we are given the source code of the php file, I modified it for easier testing locally.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;1: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;    <span style="color:#75715e">// strting must start with _
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;2: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">stripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;   <span style="color:#75715e">// string must start with _
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;3: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strrpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;   <span style="color:#75715e">// last position of _ in string must be 0
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;4: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;  <span style="color:#75715e">// last position of _ in string must be 0
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;5: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strstr</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;6: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strpbrk</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;7: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/[a-z][0-9._]/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>])<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;8: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/ABCDEFGHIJKLMNOPQRSTUVWXYZ/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>])<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#a6e22e">print_r</span>($_GET);
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;=========================================================================&lt;br&gt;&#34;</span>;
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;1&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">stripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;2&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strrpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;3&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;4&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strstr</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;5&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strpbrk</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;6&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/[a-z][0-9._]/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>]) ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;7&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/ABCDEFGHIJKLMNOPQRSTUVWXYZ/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>]) ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;8&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">isset</span>($_GET[<span style="color:#e6db74">&#34;_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_&#34;</span>]) ) {
+    <span style="color:#66d9ef">if</span>( $_GET[<span style="color:#e6db74">&#39;_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_&#39;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;🚣‍♀️ 🚣🏻‍♀️ 🚣🏼‍♀️ 🚣🏽‍♀️ 🚣🏾‍♀️ 🚣🏿‍♀️ 🚣‍♂️ 🚣🏻‍♂️ 🚣🏼‍♂️ 🚣🏽‍♂️ 🚣🏾‍♂️ 🚣🏿‍♂️&#34;</span> ) {
+        <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;CTF{Flag}&#34;</span>;
+    } <span style="color:#66d9ef">else</span> {
+        <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Param value not correct&#34;</span>;
+    }
+}
+<span style="color:#66d9ef">else</span> {
+    <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Required param not set&#34;</span>;
+}
+<span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>After some testing we found out these 2 conditions has to be true.</p>
+<ol>
+<li>strting must start with _</li>
+<li>last position of _ in string must be 0</li>
+</ol>
+<p>Which is not possible if we want to set the get parameter <code>_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_</code>. Then it just hit me that the korean subdomain is a hint to the solution, url encoding. Since <code>$_SERVER[&quot;QUERY_STRING&quot;</code> gets the query string without parsing it, this should work.</p>
+<p>I used this Cyber Chef recipe to url encode <code>_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_</code>.</p>
+<pre tabindex="0"><code>To_Hex('Space')
+Find_/_Replace({'option':'Regex','string':'\\s'},'%',true,false,true,false)
+Find_/_Replace({'option':'Regex','string':'^'},'%',true,false,true,false)
+</code></pre><p>This is our payload url.</p>
+<pre tabindex="0"><code>http://가나다라마바사아자차카타파하.cddc19q.ctf.sg/?%5f%31%32%33%34%35%36%37%38%39%30%2d%41%42%43%44%45%46%47%48%49%4a%4b%4c%4d%4e%4f%50%51%52%53%54%55%56%57%58%59%5a%2d%71%77%65%72%74%79%75%69%6f%70%61%73%64%66%67%68%6a%6b%6c%7a%78%63%76%62%6e%6d%5f=🚣‍♀️ 🚣🏻‍♀️ 🚣🏼‍♀️ 🚣🏽‍♀️ 🚣🏾‍♀️ 🚣🏿‍♀️ 🚣‍♂️ 🚣🏻‍♂️ 🚣🏼‍♂️ 🚣🏽‍♂️ 🚣🏾‍♂️ 🚣🏿‍♂️
+</code></pre><p>Sure enought it worked.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/php_flag.png" alt=""  />
+</p>
+<h3 id="flag-3">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${PHP_tricks_are_very_fun!}
+</code></pre>]]></content:encoded></item></channel></rss>

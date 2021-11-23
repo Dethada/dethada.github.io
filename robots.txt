@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://dzhy.dev/sitemap.xml

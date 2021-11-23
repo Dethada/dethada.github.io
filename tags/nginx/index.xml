@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Nginx on David Zhu | Blog</title><link>https://dzhy.dev/tags/nginx/</link><description>Recent content in Nginx on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 06 Apr 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/tags/nginx/index.xml" rel="self" type="application/rss+xml"/><item><title>Firefly III Setup with Docker and HTTPS</title><link>https://dzhy.dev/posts/2019-04-06-firefly-iii-setup-with-docker-and-https/</link><pubDate>Sat, 06 Apr 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-04-06-firefly-iii-setup-with-docker-and-https/</guid><description>In this tutorial we will setup Firefly III using docker and setup a reverse proxy to enable https, as Firefly III itself does not support https. For the purpose of this tutorial we will be using firefly.example.com as the domain.
+Note: This tutorial assumes you have already setup a mysql/postgres database.
+Docker If you have not yet installed docker refere to docker install documentation to install it first.</description><content:encoded><![CDATA[<p>In this tutorial we will setup <a href="https://firefly-iii.org/">Firefly III</a> using docker and setup a reverse proxy to enable https, as <em>Firefly III</em> itself does not support https. For the purpose of this tutorial we will be using <code>firefly.example.com</code> as the domain.</p>
+<blockquote>
+<p>Note: This tutorial assumes you have already setup a mysql/postgres database.</p>
+</blockquote>
+<h2 id="docker">Docker</h2>
+<blockquote>
+<p>If you have not yet installed docker refere to <a href="https://docs.docker.com/install/">docker install documentation</a> to install it first.</p>
+</blockquote>
+<p>First we create persistent volumes to store uploaded files and exported data.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker volume create firefly_iii_export
+docker volume create firefly_iii_upload
+</code></pre></div><p>To ensure the site works behind our reverse proxy and all the links on the site is using https we have to set the following environment variables.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">APP_URL<span style="color:#f92672">=</span>https://firefly.example.com
+TRUSTED_PROXIES<span style="color:#f92672">=</span>**
+</code></pre></div><p>The app key is any 32 character alphanumeric string. The database by default is assumed to be MySQL, if you are using a Postgres database you have to set an extra environment vairable <code>DB_CONNECTION=pgsql</code>.</p>
+<p>The following command will run the firefly-iii container and map it to port <code>4040</code> on the host.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker run -d <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-v firefly_iii_export:/var/www/firefly-iii/storage/export <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-v firefly_iii_upload:/var/www/firefly-iii/storage/upload <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-p 127.0.0.1:4040:80 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_APP_ENV<span style="color:#f92672">=</span>local <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_APP_KEY<span style="color:#f92672">=</span><span style="color:#ae81ff">12345678901234567890123456789012</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_HOST<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_PORT<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_NAME<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_USER<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_PASSWORD<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e APP_URL<span style="color:#f92672">=</span>https://firefly.example.com <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e TRUSTED_PROXIES<span style="color:#f92672">=</span>** <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>--name firefly-iii-c1 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>jc5x/firefly-iii:latest
+</code></pre></div><h2 id="enable-recurring-transactions">Enable Recurring Transactions</h2>
+<blockquote>
+<p>You can ignore this if you are not planning on using recurring transactions.</p>
+</blockquote>
+<p>Drop into shell on the container</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker exec -it firefly-iii-c1 /bin/bash
+</code></pre></div><p>Install cron in docker container</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">apt update
+apt install cron
+</code></pre></div><p>Run <code>crontab -e</code> to edit cronjobs, then add the following cron job to enable recurring transactions.</p>
+<pre tabindex="0"><code>0 0 * * * /usr/local/bin/php /var/www/firefly-iii/artisan firefly:cron
+</code></pre><p>These changes will persist even if you restart the container, however if you start another container from the image <code>jc5x/firefly-iii:latest</code> you have to do these steps again.</p>
+<h2 id="setup-nginx">Setup Nginx</h2>
+<p>If you are using cloudflare as your dns provider, you can refer to [this post]({% post_url 2019-04-03-Certbot-Cloudflare-DNS-Plugin %}) on getting TLS certificates from <em>Let&rsquo;s Encrypt</em> using the cloudflare dns plugin.</p>
+<p>This is a sample site configuration for nginx. Change <code>firefly.example.com</code> to your domain. You should also change the <code>proxy_pass</code> parameter on line 17 if you mapped the host port of <em>Firefly III</em> to a port other than <code>4040</code>, or if the docker container is running on another host.</p>
+<pre tabindex="0"><code>server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name firefly.example.com;
+
+    # SSL
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
+
+    # logging
+    access_log /var/log/nginx/firefly.example.com.access.log;
+    error_log /var/log/nginx/firefly.example.com.error.log warn;
+
+    # reverse proxy
+    location / {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_http_version      1.1;
+        proxy_cache_bypass      $http_upgrade;
+        proxy_set_header Upgrade                $http_upgrade;
+        proxy_set_header Connection             &quot;upgrade&quot;;
+        proxy_set_header Host                   $host;
+        proxy_set_header X-Real-IP              $remote_addr;
+        proxy_set_header X-Forwarded-For        $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto      $scheme;
+        proxy_set_header X-Forwarded-Host       $host;
+        proxy_set_header X-Forwarded-Port       $server_port;
+    }
+    
+    # security headers
+    add_header X-Frame-Options &quot;SAMEORIGIN&quot; always;
+    add_header X-XSS-Protection &quot;1; mode=block&quot; always;
+    add_header X-Content-Type-Options &quot;nosniff&quot; always;
+    add_header Referrer-Policy &quot;no-referrer-when-downgrade&quot; always;
+    add_header Content-Security-Policy &quot;default-src * data: 'unsafe-eval' 'unsafe-inline'&quot; always;
+    add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot; always;
+
+    # . files
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+
+    # gzip
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss applica
+    tion/atom+xml image/svg+xml;
+}
+
+# subdomains redirect
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name *.firefly.example.com;
+
+    # SSL
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
+
+    return 301 https://firefly.example.com$request_uri;
+}
+
+# HTTP redirect
+server {
+    listen 80;
+    listen [::]:80;
+    server_name .firefly.example.com;
+
+    location / {
+        return 301 https://firefly.example.com$request_uri;
+    }
+}
+</code></pre><h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://docs.firefly-iii.org/en/latest/installation/docker.html">Installation Documentation</a></li>
+<li><a href="https://docs.firefly-iii.org/en/latest/installation/cronjob.html#cronjobs">Cronjob Documentation</a></li>
+</ul>
+]]></content:encoded></item></channel></rss>

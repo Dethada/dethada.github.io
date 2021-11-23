@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Binary Analysis on David Zhu | Blog</title><link>https://dzhy.dev/tags/binary-analysis/</link><description>Recent content in Binary Analysis on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 28 Feb 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/tags/binary-analysis/index.xml" rel="self" type="application/rss+xml"/><item><title>Understanding rabin2 output</title><link>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</link><pubDate>Fri, 28 Feb 2020 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</guid><description>Prelude If you don&amp;rsquo;t know what rabin2 is/what it does.
+Rabin2 understands many file formats: Java CLASS, ELF, PE, Mach-O or any format supported by plugins, and it is able to obtain symbol import/exports, library dependencies, strings of data sections, xrefs, entrypoint address, sections, architecture type. [src]
+The binary info option of rabin2 outputs quite a lot of information, however there&amp;rsquo;s no explanation to what each of the values mean, they can be quite cryptic especially to those not familiar with reverse engineering.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>If you don&rsquo;t know what rabin2 is/what it does.</p>
+<blockquote>
+<p>Rabin2 understands many file formats: Java CLASS, ELF, PE, Mach-O or any format supported by plugins, and it is able to obtain symbol import/exports, library dependencies, strings of data sections, xrefs, entrypoint address, sections, architecture type. <a href="https://radare.gitbooks.io/radare2book/tools/rabin2/intro.html">[src]</a></p>
+</blockquote>
+<p>The binary info option of rabin2 outputs quite a lot of information, however there&rsquo;s no explanation to what each of the values mean, they can be quite cryptic especially to those not familiar with reverse engineering. I tried searching around but couldn&rsquo;t find any information regarding it so I made this table to help with interpretting the values, not all values are included here, but I added all that I could figure out so far, this may be updated in the future.</p>
+<h2 id="table">Table</h2>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Explanation</th>
+<th>Remark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arch</td>
+<td>Architecture of the binary (Eg. ARM, x86)</td>
+<td></td>
+</tr>
+<tr>
+<td>baddr</td>
+<td>Base Address, used to calculate the absolute address when the program is loaded in memory.</td>
+<td></td>
+</tr>
+<tr>
+<td>laddr</td>
+<td>Load Address</td>
+<td><a href="https://reverseengineering.stackexchange.com/a/19783">Reference</a></td>
+</tr>
+<tr>
+<td>bits</td>
+<td>Size of address pointer of program</td>
+<td></td>
+</tr>
+<tr>
+<td>bintype</td>
+<td>The type of binary (Eg. PE, ELF), blank if not a known binary type</td>
+<td></td>
+</tr>
+<tr>
+<td>linenum</td>
+<td><a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#coff-line-numbers-deprecated">COFF Line Numbers</a> for PE or DWARF in ELF, Debugging line numbers relating to the source code.</td>
+<td></td>
+</tr>
+<tr>
+<td>lsyms</td>
+<td>Whether the binary contains debug symbols. Having symbols allows you to see function and variable names.</td>
+<td></td>
+</tr>
+<tr>
+<td>endian</td>
+<td>Endianness of the binary (Little or Big)</td>
+<td></td>
+</tr>
+<tr>
+<td>binsz</td>
+<td>Size of the binary in bytes</td>
+<td></td>
+</tr>
+<tr>
+<td>Canary</td>
+<td>Stack canary. A random value is placed on the stack at the start of the function, this value is checked for modification before a function returns because it has to be overwritten in order to overwrite the return pointer.</td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>retguard</td>
+<td>Similar function to stack canary. <a href="https://isopenbsdsecu.re/mitigations/retguard/">More info</a></td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>sanitiz</td>
+<td>Address Sanitizer (ASAN) a memory error detector for C/C++</td>
+<td>Should only be seen for debug builds because of the performance impact of ASAN</td>
+</tr>
+<tr>
+<td>NX</td>
+<td>No execute bit. W^X -&gt; Memory regions cannot be both writable and executable</td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>PIC</td>
+<td>Position Independent Code, allows ASLR</td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>reloc</td>
+<td>Performs Load-time relocation</td>
+<td></td>
+</tr>
+<tr>
+<td>Relro</td>
+<td><a href="https://ctf101.org/binary-exploitation/relocation-read-only/">Makes some binary sections read-only.</a></td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>rpath</td>
+<td>The run-time library search path hard-coded in an executable file or library.</td>
+<td></td>
+</tr>
+<tr>
+<td>Signed</td>
+<td>Digitally signed</td>
+<td>Only for PE binaries</td>
+</tr>
+<tr>
+<td>Static</td>
+<td>Whether the binary is statically linked</td>
+<td></td>
+</tr>
+<tr>
+<td>Stripped</td>
+<td>Whether the binary contain debug information</td>
+<td></td>
+</tr>
+<tr>
+<td>va</td>
+<td>Uses virtual addressing</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="sample-outputs">Sample outputs</h2>
+<pre tabindex="0"><code>$ rabin2 -I /bin/bash
+arch     x86
+baddr    0x0
+binsz    1111705
+bintype  elf
+bits     64
+canary   true
+sanitiz  false
+class    ELF64
+crypto   false
+endian   little
+havecode true
+intrp    /lib64/ld-linux-x86-64.so.2
+laddr    0x0
+lang     c
+linenum  false
+lsyms    false
+machine  AMD x86-64 architecture
+maxopsz  16
+minopsz  1
+nx       true
+os       linux
+pcalign  0
+pic      true
+relocs   false
+relro    full
+rpath    NONE
+static   false
+stripped true
+subsys   linux
+va       true
+</code></pre><pre tabindex="0"><code>$ rabin2 -I /mnt/c/Windows/System32/ipconfig.exe
+arch     x86
+baddr    0x140000000
+binsz    34816
+bintype  pe
+bits     64
+canary   false
+retguard false
+sanitiz  false
+class    PE32+
+cmp.csum 0x0000cef7
+compiled Tue Jan 14 03:35:17 1986
+crypto   false
+dbg_file ipconfig.pdb
+endian   little
+havecode true
+hdr.csum 0x0000cef7
+guid     FF8C0F8EBC5D9AA01B9260167EE2FC3C1
+laddr    0x0
+linenum  false
+lsyms    false
+machine  AMD 64
+maxopsz  16
+minopsz  1
+nx       true
+os       windows
+overlay  false
+pcalign  0
+pic      true
+relocs   false
+signed   false
+static   false
+stripped true
+subsys   Windows CUI
+va       true
+</code></pre>]]></content:encoded></item></channel></rss>

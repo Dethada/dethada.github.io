@@ -1,0 +1,1207 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>David Zhu | Blog</title><link>https://dzhy.dev/</link><description>Recent content on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 28 Feb 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/index.xml" rel="self" type="application/rss+xml"/><item><title>About Me</title><link>https://dzhy.dev/about/</link><pubDate>Tue, 23 Nov 2021 17:57:28 +0800</pubDate><guid>https://dzhy.dev/about/</guid><description>Hi, I’m David. My current areas of interest are Infosec, Programming Languages, Vim and Personal Knowledge Management.
+Work Expirence April 2019 - August 2019 Internship, CSIT Discovering and Defending against abuse of Windows Binaries
+September 2017 - June 2018 Backend Developer, Insurpool (Startup) Buit Restful API using Django
+October 2017 - June 2018 Network Engineer, Syslogic Network/Server setup and maintenance
+Certifications 2019 Organisational Systems Security Analyst (OSSA), ThinkSECURE 2018 Certified Ethical Hacker (CEH), ECCouncil Education 2022 - 2026 (expected) Bachelor of Computing in Computer Science, National University of Singapore 2017 - 2020 Diploma in Infocomm Security Management, with Merit, Singapore Polytechnic Awards 2020 CSIT Undergraduate Scholarship, CSIT 2019 Director&amp;rsquo;s Roll for AY2018/2019, Singapore Polytechnic 2018 Director&amp;rsquo;s Roll for AY2017/2018, Singapore Polytechnic 2018 CSIT Diploma Scholarship, CSIT</description><content:encoded><![CDATA[<p>Hi, I’m David. My current areas of interest are Infosec, Programming Languages, Vim and Personal
+Knowledge Management.</p>
+<h2 id="work-expirence">Work Expirence</h2>
+<dl>
+<dt>April 2019 - August 2019</dt>
+<dd><strong>Internship</strong>, CSIT
+<p><em>Discovering and Defending against abuse of Windows Binaries</em></p>
+</dd>
+<dt>September 2017 - June 2018</dt>
+<dd><strong>Backend Developer</strong>, Insurpool (Startup)
+<p><em>Buit Restful API using Django</em></p>
+</dd>
+<dt>October 2017 - June 2018</dt>
+<dd><strong>Network Engineer</strong>, Syslogic
+<p><em>Network/Server setup and maintenance</em></p>
+</dd>
+</dl>
+<h2 id="certifications">Certifications</h2>
+<dl>
+<dt>2019</dt>
+<dd><strong>Organisational Systems Security Analyst (OSSA)</strong>, ThinkSECURE</dd>
+<dt>2018</dt>
+<dd><strong>Certified Ethical Hacker (CEH)</strong>, ECCouncil</dd>
+</dl>
+<h2 id="education">Education</h2>
+<dl>
+<dt>2022 - 2026 (expected)</dt>
+<dd><strong>Bachelor of Computing in Computer Science</strong>, National University of Singapore</dd>
+<dt>2017 - 2020</dt>
+<dd><strong>Diploma in Infocomm Security Management, with Merit</strong>, Singapore Polytechnic</dd>
+</dl>
+<h2 id="awards">Awards</h2>
+<dl>
+<dt>2020</dt>
+<dd><strong>CSIT Undergraduate Scholarship</strong>, CSIT</dd>
+<dt>2019</dt>
+<dd><strong>Director&rsquo;s Roll for AY2018/2019</strong>, Singapore Polytechnic</dd>
+<dt>2018</dt>
+<dd><strong>Director&rsquo;s Roll for AY2017/2018</strong>, Singapore Polytechnic</dd>
+<dt>2018</dt>
+<dd><strong>CSIT Diploma Scholarship</strong>, CSIT</dd>
+</dl>
+]]></content:encoded></item><item><title>Understanding rabin2 output</title><link>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</link><pubDate>Fri, 28 Feb 2020 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</guid><description>Prelude If you don&amp;rsquo;t know what rabin2 is/what it does.
+Rabin2 understands many file formats: Java CLASS, ELF, PE, Mach-O or any format supported by plugins, and it is able to obtain symbol import/exports, library dependencies, strings of data sections, xrefs, entrypoint address, sections, architecture type. [src]
+The binary info option of rabin2 outputs quite a lot of information, however there&amp;rsquo;s no explanation to what each of the values mean, they can be quite cryptic especially to those not familiar with reverse engineering.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>If you don&rsquo;t know what rabin2 is/what it does.</p>
+<blockquote>
+<p>Rabin2 understands many file formats: Java CLASS, ELF, PE, Mach-O or any format supported by plugins, and it is able to obtain symbol import/exports, library dependencies, strings of data sections, xrefs, entrypoint address, sections, architecture type. <a href="https://radare.gitbooks.io/radare2book/tools/rabin2/intro.html">[src]</a></p>
+</blockquote>
+<p>The binary info option of rabin2 outputs quite a lot of information, however there&rsquo;s no explanation to what each of the values mean, they can be quite cryptic especially to those not familiar with reverse engineering. I tried searching around but couldn&rsquo;t find any information regarding it so I made this table to help with interpretting the values, not all values are included here, but I added all that I could figure out so far, this may be updated in the future.</p>
+<h2 id="table">Table</h2>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Explanation</th>
+<th>Remark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arch</td>
+<td>Architecture of the binary (Eg. ARM, x86)</td>
+<td></td>
+</tr>
+<tr>
+<td>baddr</td>
+<td>Base Address, used to calculate the absolute address when the program is loaded in memory.</td>
+<td></td>
+</tr>
+<tr>
+<td>laddr</td>
+<td>Load Address</td>
+<td><a href="https://reverseengineering.stackexchange.com/a/19783">Reference</a></td>
+</tr>
+<tr>
+<td>bits</td>
+<td>Size of address pointer of program</td>
+<td></td>
+</tr>
+<tr>
+<td>bintype</td>
+<td>The type of binary (Eg. PE, ELF), blank if not a known binary type</td>
+<td></td>
+</tr>
+<tr>
+<td>linenum</td>
+<td><a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#coff-line-numbers-deprecated">COFF Line Numbers</a> for PE or DWARF in ELF, Debugging line numbers relating to the source code.</td>
+<td></td>
+</tr>
+<tr>
+<td>lsyms</td>
+<td>Whether the binary contains debug symbols. Having symbols allows you to see function and variable names.</td>
+<td></td>
+</tr>
+<tr>
+<td>endian</td>
+<td>Endianness of the binary (Little or Big)</td>
+<td></td>
+</tr>
+<tr>
+<td>binsz</td>
+<td>Size of the binary in bytes</td>
+<td></td>
+</tr>
+<tr>
+<td>Canary</td>
+<td>Stack canary. A random value is placed on the stack at the start of the function, this value is checked for modification before a function returns because it has to be overwritten in order to overwrite the return pointer.</td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>retguard</td>
+<td>Similar function to stack canary. <a href="https://isopenbsdsecu.re/mitigations/retguard/">More info</a></td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>sanitiz</td>
+<td>Address Sanitizer (ASAN) a memory error detector for C/C++</td>
+<td>Should only be seen for debug builds because of the performance impact of ASAN</td>
+</tr>
+<tr>
+<td>NX</td>
+<td>No execute bit. W^X -&gt; Memory regions cannot be both writable and executable</td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>PIC</td>
+<td>Position Independent Code, allows ASLR</td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>reloc</td>
+<td>Performs Load-time relocation</td>
+<td></td>
+</tr>
+<tr>
+<td>Relro</td>
+<td><a href="https://ctf101.org/binary-exploitation/relocation-read-only/">Makes some binary sections read-only.</a></td>
+<td>Protection Mechanism</td>
+</tr>
+<tr>
+<td>rpath</td>
+<td>The run-time library search path hard-coded in an executable file or library.</td>
+<td></td>
+</tr>
+<tr>
+<td>Signed</td>
+<td>Digitally signed</td>
+<td>Only for PE binaries</td>
+</tr>
+<tr>
+<td>Static</td>
+<td>Whether the binary is statically linked</td>
+<td></td>
+</tr>
+<tr>
+<td>Stripped</td>
+<td>Whether the binary contain debug information</td>
+<td></td>
+</tr>
+<tr>
+<td>va</td>
+<td>Uses virtual addressing</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="sample-outputs">Sample outputs</h2>
+<pre tabindex="0"><code>$ rabin2 -I /bin/bash
+arch     x86
+baddr    0x0
+binsz    1111705
+bintype  elf
+bits     64
+canary   true
+sanitiz  false
+class    ELF64
+crypto   false
+endian   little
+havecode true
+intrp    /lib64/ld-linux-x86-64.so.2
+laddr    0x0
+lang     c
+linenum  false
+lsyms    false
+machine  AMD x86-64 architecture
+maxopsz  16
+minopsz  1
+nx       true
+os       linux
+pcalign  0
+pic      true
+relocs   false
+relro    full
+rpath    NONE
+static   false
+stripped true
+subsys   linux
+va       true
+</code></pre><pre tabindex="0"><code>$ rabin2 -I /mnt/c/Windows/System32/ipconfig.exe
+arch     x86
+baddr    0x140000000
+binsz    34816
+bintype  pe
+bits     64
+canary   false
+retguard false
+sanitiz  false
+class    PE32+
+cmp.csum 0x0000cef7
+compiled Tue Jan 14 03:35:17 1986
+crypto   false
+dbg_file ipconfig.pdb
+endian   little
+havecode true
+hdr.csum 0x0000cef7
+guid     FF8C0F8EBC5D9AA01B9260167EE2FC3C1
+laddr    0x0
+linenum  false
+lsyms    false
+machine  AMD 64
+maxopsz  16
+minopsz  1
+nx       true
+os       windows
+overlay  false
+pcalign  0
+pic      true
+relocs   false
+signed   false
+static   false
+stripped true
+subsys   Windows CUI
+va       true
+</code></pre>]]></content:encoded></item><item><title>SNI and ESNI</title><link>https://dzhy.dev/posts/2019-07-20-sni-esni/</link><pubDate>Sat, 20 Jul 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-07-20-sni-esni/</guid><description>Prelude I have a DNS resolver setup at home which my home devices use and set it to use DNS over TLS (DoT) to resolve queries so ISPs and such can&amp;rsquo;t see the domains I&amp;rsquo;m visiting, but SNI is leaking out the sites I&amp;rsquo;m visiting and there&amp;rsquo;s nothing much I can do about it for now. 😣
+What is the Purpose of SNI Problem Name-based virtual hosting allows multiple DNS hostnames to be hosted by a single server (usually a web server) on the same IP address.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>I have a DNS resolver setup at home which my home devices use and set it to use DNS over TLS (DoT) to resolve queries so ISPs and such can&rsquo;t see the domains I&rsquo;m visiting, but SNI is leaking out the sites I&rsquo;m visiting and there&rsquo;s nothing much I can do about it for now. 😣</p>
+<h2 id="what-is-the-purpose-of-sni">What is the Purpose of SNI</h2>
+<h3 id="problem">Problem</h3>
+<blockquote>
+<p>Name-based virtual hosting allows multiple DNS hostnames to be hosted by a single server (usually a web server) on the same IP address. To achieve this, the server uses a hostname presented by the client as part of the protocol (for HTTP the name is presented in the host header). <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">Source</a></p>
+</blockquote>
+<p>However, when using HTTPS, the TLS connection happens before the sending of any HTTP data, so we need another way of letting the server know which host we are connecting to so it can establish the TLS connection with the correct certificate.</p>
+<h3 id="solution">Solution</h3>
+<p>Server Name Indication (SNI) solves this by having the client send the hostname as part of the TLS handshake. This enables the server to establish the TLS connection with the correct certificate.</p>
+<p>The hostname sent during TLS handshake is not encrypted, so eavesdroppers for example ISPs can see which sites you are visiting.</p>
+<p>Here&rsquo;s a diagram to illustrate. 🔒 Means that it is encrypted.
+
+<div class="mermaid" align="center">
+sequenceDiagram
+    Client->>Server: ClientHello + SNI
+    Server->>Client: ServerHello
+    Client->>Server: Finished🔒
+    Client->>Server: HTTP Request🔒
+    Server->>Client: HTTP Response🔒
+</div>
+</p>
+<p>I have written a <a href="https://github.com/PotatoDrug/SNI-Sniffer">SNI Sniffer</a> (only tested on linux) to see this in effect, the code quality is pretty bad I&rsquo;ll update it when I have time.</p>
+<pre tabindex="0"><code>➜ sudo sni-sniffer -s eth0
+Started capturing on ens33
+TCP V4(192.168.14.128):50596 -&gt; V4(172.217.27.46):443
+SNI: [
+    &quot;google.com&quot;,
+]
+TCP V4(192.168.14.128):51262 -&gt; V4(117.18.232.200):443
+SNI: [
+    &quot;az764295.vo.msecnd.net&quot;,
+]
+TCP V4(192.168.14.128):45508 -&gt; V4(111.221.29.254):443
+SNI: [
+    &quot;vortex.data.microsoft.com&quot;,
+]
+TCP V4(192.168.14.128):40952 -&gt; V4(172.217.160.10):443
+SNI: [
+    &quot;safebrowsing.googleapis.com&quot;,
+]
+TCP V4(192.168.14.128):37934 -&gt; V4(35.166.72.120):443
+SNI: [
+    &quot;shavar.services.mozilla.com&quot;,
+]
+</code></pre><h2 id="esni">ESNI🔒</h2>
+<p>Encrypted SNI is an extension to TLS 1.3 and above which encrypts the SNI so eavesdroppers cannot see which sites you are visiting.</p>
+<!-- raw HTML omitted -->
+<p>The general idea of how ESNI works is the server publishes a public key on as a DNS record, which can be fetched by the client before connecting. The client then encrypts the SNI extension using a symmetric encryption key derived using the server&rsquo;s public key. The server can then decrypt it by deriving the same symmetric encryption key using it&rsquo;s private key.</p>
+<p>For now the only browser I know that supports ESNI is Firefox, but it is not enabled by default, you have to enable it yourself, by going to <code>about:config</code> and setting <code>network.security.esni.enabled</code> to true.</p>
+<p>The problem now is the server you are connecting to has to support ESNI as well, and there isn&rsquo;t much support for it software wise as the specifications for ESNI is still in draft. Even when the software support is there, most people are probably lazy to setup ESNI for their servers, currently the best/easiest solution is to use cloudflare as a reverse proxy as they have ESNI enabled by default.</p>
+<p>Hopefully specifications for ESNI will be firmed up soon and more sites and browsers will start using ESNI.</p>
+]]></content:encoded></item><item><title>CDDC 2019 LSCVM Writeup</title><link>https://dzhy.dev/posts/2019-06-14-cddc-2019-lscvm-writeup/</link><pubDate>Fri, 14 Jun 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-06-14-cddc-2019-lscvm-writeup/</guid><description>This is actually a challenge from the qualifiers, but because this challenge will be used in the Finals again so we weren&amp;rsquo;t allowed to post about it until after the finals. More on that later, here&amp;rsquo;s the writeup.
+LSCVM: Immaculate Invasion DESCRIPTION
+During our recon on the notorious fools of LightSpeedCorp, we have discovered this service which runs on a really simple, tiny, trivial, virtual machine that they have created.</description><content:encoded><![CDATA[<p>This is actually a challenge from the qualifiers, but because this challenge will be used in the Finals again so we weren&rsquo;t allowed to post about it until after the finals. More on that <a href="#rant">later</a>, here&rsquo;s the writeup.</p>
+<h2 id="lscvm-immaculate-invasion">LSCVM: Immaculate Invasion</h2>
+<blockquote>
+<p>DESCRIPTION</p>
+<p>During our recon on the notorious fools of LightSpeedCorp, we have discovered this service which runs on a really simple, tiny, trivial, virtual machine that they have created. We are not sure of its purpose, but it certainly looks fun to play with.</p>
+<p><strong>lscvm-ii.cddc19q.ctf.sg 9001</strong></p>
+<p>IMPORTANT: We highly recommend you to fully understand this challenge as we will use this VM again in the Final.</p>
+</blockquote>
+<h3 id="solution">Solution</h3>
+<p>Looking at the strings in the binary, it looks like we are dealing with a Stack based vm, and those long strings are probably the instructions.</p>
+<p><img loading="lazy" src="/2019-06-14-CDDC-2019-LSCVM-Writeup/lscvm_strings.png" alt="Strings"  />
+</p>
+<p>If we try running it we&rsquo;ll get an error.</p>
+<pre tabindex="0"><code>cddc/re/LSCVM ➜ ./lscvm-ii
+[-] Flag file open error: No such file or directory
+</code></pre><p>We find the code that is throwing the error and we can see it is trying to read a file called flag.</p>
+<p><img loading="lazy" src="/2019-06-14-CDDC-2019-LSCVM-Writeup/read_flag.png" alt="Read flag"  />
+</p>
+<p>Let&rsquo;s create a file called flag to fix this error.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">echo <span style="color:#e6db74">&#39;CTF{flag}&#39;</span> &gt; flag
+</code></pre></div><p>Now when we run it we can see that it asks us for an ID which we have to figure out.</p>
+<pre tabindex="0"><code>cddc/re/LSCVM ➜ ./lscvm-ii
+
+=== Welcome to LSCVM(LightSpeed Corp Virtual Machine) ===
+
+ID : 1
+[-] Wrong id
+</code></pre><p>After doing some analysis, I figured out that if argc is 2 the program will print out &lsquo;debug&rsquo; information.</p>
+<pre tabindex="0"><code>cddc/re/LSCVM ➜ ./lscvm-ii a
+@0 c [ 02 ]
+@1 f [ 02 05 ]
+@2 M [ 0a ]
+@3 c [ 0a 02 ]
+@4 f [ 0a 02 05 ]
+@5 M [ 0a 0a ]
+@6 h [ 0a 0a 07 ]
+@7 i [ 0a 0a 07 08 ]
+@8 M [ 0a 0a 38 ]
+@9 f [ 0a 0a 38 05 ]
+@10 A [ 0a 0a 3d ]
+.
+.
+.
+</code></pre><p>The information can be interpreted this way.</p>
+<table>
+<thead>
+<tr>
+<th>Instruction pointer</th>
+<th>instruction</th>
+<th>output</th>
+<th>Stack after running instruction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@0</td>
+<td>c</td>
+<td></td>
+<td>[ 02 ]</td>
+</tr>
+<tr>
+<td>@1</td>
+<td>f</td>
+<td></td>
+<td>[ 02 05 ]</td>
+</tr>
+<tr>
+<td>@2</td>
+<td>M</td>
+<td></td>
+<td>[ 0a ]</td>
+</tr>
+</tbody>
+</table>
+<p>Using the debug output and static analysis, I was able to recover the whole instruction set.</p>
+<table>
+<thead>
+<tr>
+<th>Opcode (Hex)</th>
+<th>Opcode (Char)</th>
+<th>Assmebly</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default</td>
+<td>NIL</td>
+<td>nop</td>
+<td>no operation, waste cycle</td>
+</tr>
+<tr>
+<td>0x0a</td>
+<td>\n</td>
+<td>nop</td>
+<td>no operation, waste cycle</td>
+</tr>
+<tr>
+<td>0x20</td>
+<td>\s</td>
+<td>nop</td>
+<td>no operation, waste cycle</td>
+</tr>
+<tr>
+<td>0x41</td>
+<td>A</td>
+<td>add</td>
+<td>Pop 2 values from stack and push the addition</td>
+</tr>
+<tr>
+<td>0x42</td>
+<td>B</td>
+<td>hlt</td>
+<td>Stop executing code</td>
+</tr>
+<tr>
+<td>0x43</td>
+<td>C</td>
+<td>jmp</td>
+<td>Pop and jump to value</td>
+</tr>
+<tr>
+<td>0x44</td>
+<td>D</td>
+<td>pop</td>
+<td>Pop a value and do nothing</td>
+</tr>
+<tr>
+<td>0x45</td>
+<td>E</td>
+<td>read</td>
+<td>Pop addr and push val. <code>0</code> &lt;= addr &lt;= <code>0x3fff</code></td>
+</tr>
+<tr>
+<td>0x46</td>
+<td>F</td>
+<td>sclone</td>
+<td>pop value n and (clone) push n+1 th previous stack value</td>
+</tr>
+<tr>
+<td>0x47</td>
+<td>G</td>
+<td>ipadd</td>
+<td>Pop value and add it to IP (Instruction Pointer)</td>
+</tr>
+<tr>
+<td>0x48</td>
+<td>H</td>
+<td>sshift</td>
+<td>pop value n and shift n+1 th previous stack value to the top of the stack</td>
+</tr>
+<tr>
+<td>0x49</td>
+<td>I</td>
+<td>pint</td>
+<td>Pop value and Print as int</td>
+</tr>
+<tr>
+<td>0x4a</td>
+<td>J</td>
+<td>cmp</td>
+<td>pop 2 values and push 0 if equal, 1 if first pop is smaller else -1. <code>0</code></td>
+</tr>
+<tr>
+<td>0x4b</td>
+<td>K</td>
+<td>write</td>
+<td>first pop is addr, 2nd pop is value to write</td>
+</tr>
+<tr>
+<td>0x4d</td>
+<td>M</td>
+<td>mul</td>
+<td>Pop 2 values from stack and push the multiplication</td>
+</tr>
+<tr>
+<td>0x50</td>
+<td>P</td>
+<td>pchar</td>
+<td>Pops value from stack and print as char</td>
+</tr>
+<tr>
+<td>0x52</td>
+<td>R</td>
+<td>rjmp</td>
+<td>Jump to previous jump location, cant do twice in a row, because it consumes the previous jump location.</td>
+</tr>
+<tr>
+<td>0x53</td>
+<td>S</td>
+<td>sub</td>
+<td>subtract 1st pop from 2nd pop push result</td>
+</tr>
+<tr>
+<td>0x56</td>
+<td>V</td>
+<td>div</td>
+<td>Divide (floor) 2nd pop by 1st pop and push result</td>
+</tr>
+<tr>
+<td>0x5a</td>
+<td>Z</td>
+<td>ipcadd</td>
+<td>conditional add to IP, if 2nd pop is 0, add 1st pop to IP</td>
+</tr>
+<tr>
+<td>0x61</td>
+<td>a</td>
+<td>p0</td>
+<td>Push 0x00 to stack</td>
+</tr>
+<tr>
+<td>0x62</td>
+<td>b</td>
+<td>p1</td>
+<td>Push 0x01 to stack</td>
+</tr>
+<tr>
+<td>0x63</td>
+<td>c</td>
+<td>p2</td>
+<td>Push 0x02 to stack</td>
+</tr>
+<tr>
+<td>0x64</td>
+<td>d</td>
+<td>p3</td>
+<td>Push 0x03 to stack</td>
+</tr>
+<tr>
+<td>0x65</td>
+<td>e</td>
+<td>p4</td>
+<td>Push 0x04 to stack</td>
+</tr>
+<tr>
+<td>0x66</td>
+<td>f</td>
+<td>p5</td>
+<td>Push 0x05 to stack</td>
+</tr>
+<tr>
+<td>0x67</td>
+<td>g</td>
+<td>p6</td>
+<td>Push 0x06 to stack</td>
+</tr>
+<tr>
+<td>0x68</td>
+<td>h</td>
+<td>p7</td>
+<td>Push 0x07 to stack</td>
+</tr>
+<tr>
+<td>0x69</td>
+<td>i</td>
+<td>p8</td>
+<td>Push 0x08 to stack</td>
+</tr>
+<tr>
+<td>0x6a</td>
+<td>j</td>
+<td>p9</td>
+<td>Push 0x09 to stack</td>
+</tr>
+</tbody>
+</table>
+<p>The input we are giving the program is actually being executed by the vm as code.</p>
+<p>To get the flag, we have to provide the vm with code that will write <code>lsc_user</code> to the vm memory, and then provide another code that will write <code>hi_darkspeed-corp!</code> to the vm memory.</p>
+<p><img loading="lazy" src="/2019-06-14-CDDC-2019-LSCVM-Writeup/get_flag.png" alt="Get flag conditions"  />
+</p>
+<p>Using the instruction set recovered I wrote this script to generate the vm code required to write the strings to memory and submit it to the service.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">import</span> socket
+
+nums <span style="color:#f92672">=</span> {
+<span style="color:#ae81ff">0x00</span>:<span style="color:#e6db74">&#39;a&#39;</span>,
+<span style="color:#ae81ff">0x01</span>:<span style="color:#e6db74">&#39;b&#39;</span>,
+<span style="color:#ae81ff">0x02</span>:<span style="color:#e6db74">&#39;c&#39;</span>,
+<span style="color:#ae81ff">0x03</span>:<span style="color:#e6db74">&#39;d&#39;</span>,
+<span style="color:#ae81ff">0x04</span>:<span style="color:#e6db74">&#39;e&#39;</span>,
+<span style="color:#ae81ff">0x05</span>:<span style="color:#e6db74">&#39;f&#39;</span>,
+<span style="color:#ae81ff">0x06</span>:<span style="color:#e6db74">&#39;g&#39;</span>,
+<span style="color:#ae81ff">0x07</span>:<span style="color:#e6db74">&#39;h&#39;</span>,
+<span style="color:#ae81ff">0x08</span>:<span style="color:#e6db74">&#39;i&#39;</span>,
+<span style="color:#ae81ff">0x09</span>:<span style="color:#e6db74">&#39;j&#39;</span>,
+<span style="color:#ae81ff">0x0a</span>:<span style="color:#e6db74">&#39;jbA&#39;</span>,
+<span style="color:#ae81ff">0x0b</span>:<span style="color:#e6db74">&#39;jcA&#39;</span>,
+<span style="color:#ae81ff">0x0c</span>:<span style="color:#e6db74">&#39;jdA&#39;</span>,
+<span style="color:#ae81ff">0x0d</span>:<span style="color:#e6db74">&#39;jeA&#39;</span>,
+<span style="color:#ae81ff">0x0e</span>:<span style="color:#e6db74">&#39;jfA&#39;</span>,
+<span style="color:#ae81ff">0x0f</span>:<span style="color:#e6db74">&#39;jgA&#39;</span>,
+<span style="color:#ae81ff">0x10</span>:<span style="color:#e6db74">&#39;jhA&#39;</span>,
+<span style="color:#ae81ff">0x11</span>:<span style="color:#e6db74">&#39;jiA&#39;</span>,
+<span style="color:#ae81ff">0x12</span>:<span style="color:#e6db74">&#39;jjA&#39;</span>,
+<span style="color:#ae81ff">0x21</span>:<span style="color:#e6db74">&#39;eiMbA&#39;</span>,
+<span style="color:#ae81ff">0x2d</span>:<span style="color:#e6db74">&#39;jfM&#39;</span>,
+<span style="color:#ae81ff">0x5f</span>:<span style="color:#e6db74">&#39;jjMchMA&#39;</span>,
+<span style="color:#ae81ff">0x61</span>:<span style="color:#e6db74">&#39;jjMcjMAcS&#39;</span>,
+<span style="color:#ae81ff">0x63</span>:<span style="color:#e6db74">&#39;jjMcjMA&#39;</span>,
+<span style="color:#ae81ff">0x64</span>:<span style="color:#e6db74">&#39;jjMcjMAbA&#39;</span>,
+<span style="color:#ae81ff">0x65</span>:<span style="color:#e6db74">&#39;jjMcjMAcA&#39;</span>,
+<span style="color:#ae81ff">0x68</span>:<span style="color:#e6db74">&#39;jjMdhMcAA&#39;</span>,
+<span style="color:#ae81ff">0x69</span>:<span style="color:#e6db74">&#39;jjMdhMdAA&#39;</span>,
+<span style="color:#ae81ff">0x6b</span>:<span style="color:#e6db74">&#39;jjMdjMAbS&#39;</span>,
+<span style="color:#ae81ff">0x6c</span>:<span style="color:#e6db74">&#39;jjMdjMA&#39;</span>,
+<span style="color:#ae81ff">0x6f</span>:<span style="color:#e6db74">&#39;jjMdjMAdA&#39;</span>,
+<span style="color:#ae81ff">0x70</span>:<span style="color:#e6db74">&#39;jjMfhMeSA&#39;</span>,
+<span style="color:#ae81ff">0x72</span>:<span style="color:#e6db74">&#39;jjMfhMcSA&#39;</span>,
+<span style="color:#ae81ff">0x73</span>:<span style="color:#e6db74">&#39;jjMfhMbSA&#39;</span>,
+<span style="color:#ae81ff">0x75</span>:<span style="color:#e6db74">&#39;jjMfhMbAA&#39;</span>}
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">write_str</span>(target):
+    output <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(target)):
+        output <span style="color:#f92672">+=</span> nums[ord(target[i])] <span style="color:#f92672">+</span> nums[i]
+
+    <span style="color:#66d9ef">return</span> output <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;K&#39;</span> <span style="color:#f92672">*</span> len(target)
+
+id_code <span style="color:#f92672">=</span> write_str(<span style="color:#e6db74">&#39;lsc_user&#39;</span>)
+pass_code <span style="color:#f92672">=</span> write_str(<span style="color:#e6db74">&#39;hi_darkspeed-corp!&#39;</span>)
+print(<span style="color:#e6db74">&#39;ID: </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Password: </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(id_code, pass_code))
+
+print(<span style="color:#e6db74">&#39;Connecting to service...&#39;</span>)
+client<span style="color:#f92672">=</span>socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET,socket<span style="color:#f92672">.</span>SOCK_STREAM)
+client<span style="color:#f92672">.</span>connect((<span style="color:#e6db74">&#39;lscvm-ii.cddc19q.ctf.sg&#39;</span>,<span style="color:#ae81ff">9001</span>))
+client<span style="color:#f92672">.</span>sendall(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(id_code)<span style="color:#f92672">.</span>encode())
+client<span style="color:#f92672">.</span>sendall(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(pass_code)<span style="color:#f92672">.</span>encode())
+<span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+    msg <span style="color:#f92672">=</span> client<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)<span style="color:#f92672">.</span>decode()
+    <span style="color:#66d9ef">if</span> msg:
+        print(msg)
+        <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;$CDDC19${&#39;</span> <span style="color:#f92672">in</span> msg:
+            client<span style="color:#f92672">.</span>close()
+            <span style="color:#66d9ef">break</span>
+</code></pre></div><pre tabindex="0"><code>cddc/re/LSCVM ➜ ./solve.py
+ID: jjMdjMAajjMfhMbSAbjjMcjMAcjjMchMAdjjMfhMbAAejjMfhMbSAfjjMcjMAcAgjjMfhMcSAhKKKKKKKK
+Password: jjMdhMcAAajjMdhMdAAbjjMchMAcjjMcjMAbAdjjMcjMAcSejjMfhMcSAfjjMdjMAbSgjjMfhMbSAhjjMfhMeSA
+ijjMcjMAcAjjjMcjMAcAjbAjjMcjMAbAjcAjfMjdAjjMcjMAjeAjjMdjMAdAjfAjjMfhMcSAjgAjjMfhMeSAjhAeiMbAjiAKK
+KKKKKKKKKKKKKKKK
+
+Connecting to service...
+
+
+=== Welcome to LSCVM(LightSpeed Corp Virtual Machine) ===
+
+ID : Password :
+Login Successful! $CDDC19${IcY_GrE37ings_Fr0M_LigHT5pEeDC0Rp}
+
+lsc_user, Good Bye!
+</code></pre><h3 id="flag">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${IcY_GrE37ings_Fr0M_LigHT5pEeDC0Rp}
+</code></pre><h2 id="rant">Rant</h2>
+<p>The organizers stated in the qualifiers LSCVM challenges that it is important to fully understand the VM as it will be used again in the Finals.</p>
+<blockquote>
+<p>IMPORTANT: We highly recommend you to fully understand this challenge as we will use this VM again in the Final.</p>
+</blockquote>
+<p>The way they brought this accross made me think that it will play a big part in the finals, so I built a <a href="https://github.com/PotatoDrug/LSCVM-Tool">tool</a> for the purpose of working on LSCVM challenge(s) during the Finals. However LSCVM was not a big part of the Finals and I didn&rsquo;t get to use my tool at all.</p>
+<p>The finals also had Rings where you have to solve a certain number of challenges to unlock the next ring. Personally I don&rsquo;t think the rings concept is a good idea, because what if it just so happens the participant can&rsquo;t solve the starting challenges but they can solve the ones in the next or next next ring? I would&rsquo;ve preferred it if the challenges were all available at the start.</p>
+<p>I understand that it was implemented to limit the number of teams that can attempt the hardware challenges because they don&rsquo;t have enought equipment for everyone to attempt at the same time, but this can also be done by only unlocking the hardware challenges once a team reach a certain number of points/solves, instead of implementing Rings.</p>
+<p>There&rsquo;s not gonna be any writeup for the finals challenges cause I did everything on the provided laptop and didn&rsquo;t transfer the files out.</p>
+]]></content:encoded></item><item><title>CDDC 2019 Qualifiers Writeup</title><link>https://dzhy.dev/posts/2019-06-04-cddc-2019-qualifiers-writeup/</link><pubDate>Tue, 04 Jun 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-06-04-cddc-2019-qualifiers-writeup/</guid><description>This year&amp;rsquo;s CDDC Qualifiers was very different from the previous year which was more of an &amp;lsquo;red team&amp;rsquo; ctf, this year&amp;rsquo;s qualifiers is a jeopardy style ctf and it&amp;rsquo;s pretty focused on OSINT which I&amp;rsquo;m not really into, but anyways here are the writeups for some of the more interesting challenges I solved.
+[B-1] Fight the Binary Monster Category: OSINT_Blue
+Drats, we found an unknown executable that someone uploaded to one of our web servers.</description><content:encoded><![CDATA[<p>This year&rsquo;s CDDC Qualifiers was very different from the previous year which was more of an &lsquo;red team&rsquo; ctf, this year&rsquo;s qualifiers is a jeopardy style ctf and it&rsquo;s pretty focused on OSINT which I&rsquo;m not really into, but anyways here are the writeups for some of the more interesting challenges I solved.</p>
+<h2 id="b-1-fight-the-binary-monster">[B-1] Fight the Binary Monster</h2>
+<p>Category: OSINT_Blue</p>
+<blockquote>
+<p>Drats, we found an unknown executable that someone uploaded to one of our web servers. How weird, it seems to be make heavy reference to trees. Is the author some kind of environmentalist, perhaps?</p>
+</blockquote>
+<h3 id="solution">Solution</h3>
+<p>When we execute the binary it asks us for the domain it is accessing.</p>
+<pre tabindex="0"><code>&gt; .\tree_monster.exe
+What domain is being accessed by this executable file?
+</code></pre><p>If we grep for a common TLD <code>.com</code> in the binary, we find <code>pastebin.com</code> and 2 pastebin links.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/osint_blue/Fight the Binary Monster ➜ strings tree_monster.exe| grep <span style="color:#e6db74">&#39;\.com&#39;</span>
+https://pastebin.com/raw/EcrLPtRP
+https://pastebin.com/raw/v1cRRWEW
+pastebin.com
+</code></pre></div><p>Browsing to <code>https://pastebin.com/raw/v1cRRWEW</code> we get the word <code>post</code> repeated a lot times.</p>
+<pre tabindex="0"><code>post post post post post post post post post post post post post post post post post post post post post post post post post post post post
+</code></pre><p>Browsing to <code>https://pastebin.com/raw/EcrLPtRP</code> we get a tree. We see characters of the flag being the nodes of the tree, the previous pastebin link is a hint on using post order traversal to trasverse the tree to get the flag.
+<img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/tree.png" alt="tree"  />
+</p>
+<h3 id="flag">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${havesometrees}
+</code></pre><h2 id="funshop">FunShop</h2>
+<p>Category: Crypto</p>
+<blockquote>
+<p>Oops, I forgot what&rsquo;s the product code. Please help me to recover it!</p>
+<p><a href="http://funshop.cddc19q.ctf.sg/">http://funshop.cddc19q.ctf.sg/</a></p>
+</blockquote>
+<h3 id="solution-1">Solution</h3>
+<p>When we click get on fun ant or fun guy we can see it is sending a get request to <code>/page/transaction.php</code> with the corresponding prod_code as the parameter.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/funshop.png" alt="Challenge site"  />
+</p>
+<p>When we send one ourself we can see that it&rsquo;s hinting that there&rsquo;s a debug mode we can enable by supplying the <code>debug_mode=1</code> get parameter.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/crypto/FunShop ➜ curl <span style="color:#e6db74">&#39;http://funshop.cddc19q.ctf.sg/page/transaction.php?prod_code=94-04-3Q
+</span><span style="color:#e6db74">mM-ulP-c0z-k&#39;</span>
+&lt;!-- ?debug_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --&gt;
+Success: Actually, I<span style="color:#960050;background-color:#1e0010">&#39;</span>m not an ant. <span style="color:#e6db74">&#34;I am Groot. :P&#34;</span>
+</code></pre></div><p>When we supply the <code>debug_mode=1</code> get parameter, we get the source code of the <code>transcation.php</code>.
+<img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/funshop_sourcecode.png" alt="Source code"  />
+</p>
+<p>To get the flag we have to send a <code>prod_code</code> that is not <code>94-04-3QmM-ulP-c0z-k</code> or <code>W8-31-5053-0kX-QiL-1</code>, but to do this we need to know the private key, lucky for us this is an insecure implementation of a MAC which is vulnerable to hash length extension attack. We get a valid hash and we can append data to it and get the hash for the string with appended data, without having to know the private key. The only requirement for this attack is to know the length of the private key, which we can bruteforce.</p>
+<p>Solve script</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">import</span> hashpumpy
+<span style="color:#f92672">import</span> base64
+<span style="color:#f92672">import</span> requests
+<span style="color:#f92672">import</span> urllib
+
+url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://funshop.cddc19q.ctf.sg/page/transaction.php&#39;</span>
+r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">?prod_code=94-04-3QmM-ulP-c0z-k&#39;</span><span style="color:#f92672">.</span>format(url))
+transaction_hash <span style="color:#f92672">=</span> r<span style="color:#f92672">.</span>cookies[<span style="color:#e6db74">&#39;transaction_hash&#39;</span>]
+prod_code <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64decode(urllib<span style="color:#f92672">.</span>parse<span style="color:#f92672">.</span>unquote(r<span style="color:#f92672">.</span>cookies[<span style="color:#e6db74">&#39;prod_code&#39;</span>]))<span style="color:#f92672">.</span>decode()
+
+<span style="color:#75715e"># brute force the private key length</span>
+<span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">200</span>):
+    x <span style="color:#f92672">=</span> hashpumpy<span style="color:#f92672">.</span>hashpump(transaction_hash,
+        prod_code,
+        <span style="color:#e6db74">&#39;data_to_add&#39;</span>,
+        i)
+
+    new_hash <span style="color:#f92672">=</span> x[<span style="color:#ae81ff">0</span>]
+    crafted_data <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64encode(x[<span style="color:#ae81ff">1</span>])<span style="color:#f92672">.</span>decode()
+
+    cookies <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;prod_code&#39;</span>: crafted_data, <span style="color:#e6db74">&#39;transaction_hash&#39;</span>: new_hash}
+
+    r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(url, cookies<span style="color:#f92672">=</span>cookies)
+
+    <span style="color:#66d9ef">if</span> r<span style="color:#f92672">.</span>text <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;&lt;!-- ?debug_mode=1 --&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>:
+        print(<span style="color:#e6db74">&#39;PRIVATE_KEY length = </span><span style="color:#e6db74">{}</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(i, r<span style="color:#f92672">.</span>text))
+        exit()
+
+print(<span style="color:#e6db74">&#39;Failed&#39;</span>)
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cddc/crypto/FunShop ➜ ./length_extension.py
+PRIVATE_KEY length <span style="color:#f92672">=</span> <span style="color:#ae81ff">14</span>
+&lt;!-- ?debug_mode<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --&gt;
+$CDDC19<span style="color:#e6db74">${</span>Me0w_m30w_@wesome!_h0w_c@n_y0u_find_me?_FUNFUN<span style="color:#e6db74">}</span>
+</code></pre></div><h3 id="flag-1">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${Me0w_m30w_@wesome!_h0w_c@n_y0u_find_me?_FUNFUN}
+</code></pre><h2 id="lemonade">Lemonade</h2>
+<p>Category: Reverse</p>
+<blockquote>
+<p>If we need lemons to make lemonade&hellip; Then what about Lemonade.EXE?</p>
+</blockquote>
+<h3 id="solution-2">Solution</h3>
+<p>Looking at the strings in the binary I realized that it is a compiled AutoIT script.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/autoit.png" alt="Strings in the binary"  />
+</p>
+<p>Then I looked for a decompiler online and I found <a href="https://files.planet-dl.org/Cw2k/MyAutToExe/index.html">MyAut2EXE</a>.</p>
+<p>The tool found the version of AutoIT used to be <code>AutoIT v3.3.14.5</code>, and successfully decompiled it. Now we have the source code of the AutoIT script, and we can see the flag in plaintext in the code.</p>
+<pre tabindex="0"><code class="language-au3" data-lang="au3">LOCAL $INT1 = GUICTRLREAD($INPUT1)
+LOCAL $INT2 = GUICTRLREAD($INPUT2)
+IF $INT1 = &quot;&quot; OR $INT2 = &quot;&quot; THEN
+
+    MSGBOX(0, &quot;NOPEEEE&quot;, &quot;Please input numbers :)&quot;)
+ELSEIF $INT1 = 941228 AND $INT2 = 940628 THEN
+    MSGBOX(0, &quot;Congratulations XD!!&quot;, &quot;$CDDC19${easy_peasy_Autoit_squeezy}&quot;)
+ELSEIF NOT STRINGISINT($INT1) OR NOT STRINGISINT($INT2) THEN
+    MSGBOX(0, &quot;NOPEEEE&quot;, &quot;Only numbers allowed :(&quot;)
+ELSE
+    MSGBOX(0, &quot;Result!!&quot;, $INT1 + $INT2)
+</code></pre><h3 id="flag-2">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${easy_peasy_Autoit_squeezy}
+</code></pre><h2 id="_">\'_'/</h2>
+<p>Category: Web</p>
+<blockquote>
+<p>\'_'/</p>
+<p>http://가나다라마바사아자차카타파하.cddc19q.ctf.sg/</p>
+</blockquote>
+<h3 id="solution-3">Solution</h3>
+<p>When we browse to the site we are given the source code of the php file, I modified it for easier testing locally.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;1: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;    <span style="color:#75715e">// strting must start with _
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;2: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">stripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;   <span style="color:#75715e">// string must start with _
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;3: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strrpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;   <span style="color:#75715e">// last position of _ in string must be 0
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;4: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;  <span style="color:#75715e">// last position of _ in string must be 0
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;5: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strstr</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;6: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">strpbrk</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;7: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/[a-z][0-9._]/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>])<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;8: &#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/ABCDEFGHIJKLMNOPQRSTUVWXYZ/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>])<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;&lt;br&gt;&#34;</span>;
+<span style="color:#a6e22e">print_r</span>($_GET);
+<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;=========================================================================&lt;br&gt;&#34;</span>;
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;1&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">stripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;2&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strrpos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;3&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strripos</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;4&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strstr</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;5&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">strpbrk</span>($_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>], <span style="color:#e6db74">&#39;_&#39;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;6&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/[a-z][0-9._]/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>]) ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;7&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/ABCDEFGHIJKLMNOPQRSTUVWXYZ/&#34;</span>, $_SERVER[<span style="color:#e6db74">&#34;QUERY_STRING&#34;</span>]) ) {
+    <span style="color:#66d9ef">exit</span>(<span style="color:#e6db74">&#34;\&#39;8&#39;/&#34;</span>);
+}
+
+<span style="color:#66d9ef">if</span>( <span style="color:#a6e22e">isset</span>($_GET[<span style="color:#e6db74">&#34;_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_&#34;</span>]) ) {
+    <span style="color:#66d9ef">if</span>( $_GET[<span style="color:#e6db74">&#39;_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_&#39;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;🚣‍♀️ 🚣🏻‍♀️ 🚣🏼‍♀️ 🚣🏽‍♀️ 🚣🏾‍♀️ 🚣🏿‍♀️ 🚣‍♂️ 🚣🏻‍♂️ 🚣🏼‍♂️ 🚣🏽‍♂️ 🚣🏾‍♂️ 🚣🏿‍♂️&#34;</span> ) {
+        <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;CTF{Flag}&#34;</span>;
+    } <span style="color:#66d9ef">else</span> {
+        <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Param value not correct&#34;</span>;
+    }
+}
+<span style="color:#66d9ef">else</span> {
+    <span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Required param not set&#34;</span>;
+}
+<span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>After some testing we found out these 2 conditions has to be true.</p>
+<ol>
+<li>strting must start with _</li>
+<li>last position of _ in string must be 0</li>
+</ol>
+<p>Which is not possible if we want to set the get parameter <code>_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_</code>. Then it just hit me that the korean subdomain is a hint to the solution, url encoding. Since <code>$_SERVER[&quot;QUERY_STRING&quot;</code> gets the query string without parsing it, this should work.</p>
+<p>I used this Cyber Chef recipe to url encode <code>_1234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ-qwertyuiopasdfghjklzxcvbnm_</code>.</p>
+<pre tabindex="0"><code>To_Hex('Space')
+Find_/_Replace({'option':'Regex','string':'\\s'},'%',true,false,true,false)
+Find_/_Replace({'option':'Regex','string':'^'},'%',true,false,true,false)
+</code></pre><p>This is our payload url.</p>
+<pre tabindex="0"><code>http://가나다라마바사아자차카타파하.cddc19q.ctf.sg/?%5f%31%32%33%34%35%36%37%38%39%30%2d%41%42%43%44%45%46%47%48%49%4a%4b%4c%4d%4e%4f%50%51%52%53%54%55%56%57%58%59%5a%2d%71%77%65%72%74%79%75%69%6f%70%61%73%64%66%67%68%6a%6b%6c%7a%78%63%76%62%6e%6d%5f=🚣‍♀️ 🚣🏻‍♀️ 🚣🏼‍♀️ 🚣🏽‍♀️ 🚣🏾‍♀️ 🚣🏿‍♀️ 🚣‍♂️ 🚣🏻‍♂️ 🚣🏼‍♂️ 🚣🏽‍♂️ 🚣🏾‍♂️ 🚣🏿‍♂️
+</code></pre><p>Sure enought it worked.</p>
+<p><img loading="lazy" src="/2019-06-04-CDDC-2019-Qualifiers-Writeup/php_flag.png" alt=""  />
+</p>
+<h3 id="flag-3">Flag</h3>
+<pre tabindex="0"><code>$CDDC19${PHP_tricks_are_very_fun!}
+</code></pre>]]></content:encoded></item><item><title>System32 Magic</title><link>https://dzhy.dev/posts/2019-05-21-system32-magic/</link><pubDate>Tue, 21 May 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-05-21-system32-magic/</guid><description>So I was using 32-bit python on windows and trying to read a binary in System32.
+with open(r&amp;#39;C:\Windows\System32\FileHistory.exe&amp;#39;, &amp;#39;rb&amp;#39;) as f: content = f.read() Then I was thrown the following error.
+This makes no sense, I know the file exists in System32.
+After some hair tearing and swearing, I figured it out. This error occurs because 32-bit applications are redirected to SysWOW64 when they try to access System32 and there is no FileHistory.</description><content:encoded><![CDATA[<p>So I was using <strong>32-bit</strong> python on windows and trying to read a binary in System32.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;C:\Windows\System32\FileHistory.exe&#39;</span>, <span style="color:#e6db74">&#39;rb&#39;</span>) <span style="color:#66d9ef">as</span> f:
+    content <span style="color:#f92672">=</span> f<span style="color:#f92672">.</span>read()
+</code></pre></div><p>Then I was thrown the following error.</p>
+<p><img loading="lazy" src="/2019-05-21-System32-Magic/error.jpg" alt="Ah shit, here we go again"  />
+</p>
+<p>This makes no sense, I know the file exists in System32.</p>
+<p>After some hair tearing and swearing, I figured it out. This error occurs because 32-bit applications are redirected to SysWOW64 when they try to access System32 and there is no <code>FileHistory.exe</code> in SysWOW64.</p>
+<p>To access the real System32 with 32-bit applications, replace System32 with Sysnative. Sysnative is a special alias that is only visible and accessible from 32-bit programs. So in this case I have to use the following path to actually read the file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;C:\Windows\Sysnative\FileHistory.exe&#39;</span>, <span style="color:#e6db74">&#39;rb&#39;</span>) <span style="color:#66d9ef">as</span> f:
+    content <span style="color:#f92672">=</span> f<span style="color:#f92672">.</span>read()
+</code></pre></div><h2 id="why">Why?</h2>
+<p>Microsoft wants to split the DLLs and other stuff used by 64-bit and 32-bit applications. 64-bit DLLs will be located in System32 because it is a hardcoded path by a lot of apps.</p>
+<p>Intuitively SysWOW64 seems like it should contain 64-bit stuff, but WOW64 stands for <em>Windows 32-bit on Windows 64-bit</em> so it actually contains 32-bit stuff.</p>
+<blockquote>
+<p>In computing on Microsoft platforms, WoW64 (Windows 32-bit on Windows 64-bit) is a subsystem of the Windows operating system capable of running 32-bit applications on 64-bit Windows.</p>
+</blockquote>
+<p>Why not keep 32-bit stuff in System32 and apply the redirection to 64-bit apps instead, and name the 64-bit folder something more intuitive like System64 so it won&rsquo;t be so confusing? Maybe Microsoft is in the forefront of implementing security by confusion.</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://www.samlogic.net/articles/sysnative-folder-64-bit-windows.htm">The &lsquo;Sysnative&rsquo; folder in 64-bit Windows explained</a></li>
+<li><a href="https://www.thewindowsclub.com/difference-system32-and-syswow64-folders">Difference between System32 and SysWOW64 folders in Windows 10</a></li>
+<li><a href="https://en.wikipedia.org/wiki/WoW64">WOW64</a></li>
+</ul>
+]]></content:encoded></item><item><title>Where are the Strings in Windows Binaries</title><link>https://dzhy.dev/posts/2019-05-04-where-are-the-strings-in-windows-binaries/</link><pubDate>Sat, 04 May 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-05-04-where-are-the-strings-in-windows-binaries/</guid><description>Prelude The Windows Binaries I&amp;rsquo;m talking about here are the ones that comes default with Windows provided by Microsoft.
+Searching for Strings in the binary I was analyzing a Windows binary C:\Windows\System32\where.exe when I realized the help text of the binary cannot be found anywhere in the binary.
+After some futher investigation using Process Monitor from Windows Sysinternals I found out that it is reading from C:\Windows\System32\en-US\where.exe.mui during it&amp;rsquo;s execution.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>The Windows Binaries I&rsquo;m talking about here are the ones that comes default with Windows provided by Microsoft.</p>
+<h2 id="searching-for-strings-in-the-binary">Searching for Strings in the binary</h2>
+<p>I was analyzing a Windows binary <code>C:\Windows\System32\where.exe</code> when I realized the help text of the binary cannot be found anywhere in the binary.</p>
+<p>After some futher investigation using <code>Process Monitor</code> from  Windows Sysinternals I found out that it is reading from <code>C:\Windows\System32\en-US\where.exe.mui</code> during it&rsquo;s execution.</p>
+<h2 id="searching-for-strings-in-the-mui">Searching for Strings in the MUI</h2>
+<p>I did some googling to find out more about the MUI file type and realized that it&rsquo;s how Windows enable support for different user interface languages.</p>
+<blockquote>
+<p>Multilingual User Interface (MUI) enables the localization of user interfaces for globalized applications. MUI also supports the creation of resources for any number of user interface languages.</p>
+</blockquote>
+<p>Further googling on how to open it says that it can be opened using 7zip, so I did and found the strings in <code>.rsrc\string.txt</code> in the archieve.</p>
+<pre tabindex="0"><code>52	Type &quot;WHERE /?&quot; for usage help.\n
+58	ERROR: Invalid directory specified.\n
+60	ERROR: &quot;$env:pattern&quot; cannot be used with /R.\n
+63	ERROR: Missing pattern in &quot;$env:pattern&quot;.\n
+64	INFO: Could not find &quot;%s&quot;.\n
+--------------------------snip--------------------------
+</code></pre><p>What&rsquo;s weird is when I ran linux&rsquo;s <code>strings</code> on the MUI file which did not manage to find the strings in the MUI file, so I initially thought that the MUI file is compressed.</p>
+<p>I then ran <code>file</code> on <code>where.exe.mui</code> and it returned <code>PE32 executable (DLL) (GUI) Intel 80386, for MS Windows</code>, I thought that&rsquo;s weird, so I tried opening the file in CFF Explorer and it worked! So a MUI file is actually a PE file.</p>
+<p>If we check the resource directories of <code>where.exe.mui</code> using CFF Explorer we can see a resource directory called <code>String Tables</code>. If we check the data within the Directory, we can find all the strings we previously seen using 7zip.</p>
+<p>The only thing that&rsquo;s weird was each character was followed by a null byte, which turns out to be because the strings are stored as unicode. Now it makes sense why linux&rsquo;s <code>strings</code> did not find anything, it does not search for unicode strings. I tried again with the <code>strings</code> tool from Windows Sysinternals and it managed to find the strings because it also searches for unicode strings.</p>
+<p>I also looked at <code>bash.exe.mui</code> and realized that the strings can also be in the <code>MESSAGETABLE</code> section of the resource directory, which have the ID of <code>0xb</code>.</p>
+<blockquote>
+<p>All the resource type can be found from the <a href="https://docs.microsoft.com/en-us/windows/desktop/menurc/resource-types">Microsoft Documentation</a>.</p>
+</blockquote>
+<h2 id="ending-notes">Ending Notes</h2>
+<p>Most of the Windows binaries does this, but not all, if you want to extract all the strings used by a Windows binary you should combine finding strings in the binary and the MUI.</p>
+<p>The strings can be in <code>STRING</code> (ID of <code>0x6</code>) and <code>MESSAGETABLE</code> (ID of <code>0xb</code>) section of the resource directory of the MUI file.</p>
+<p>I have made a <a href="https://github.com/PotatoDrug/MUI-Strings">tool in rust</a> to retrieve the strings from a MUI file.</p>
+]]></content:encoded></item><item><title>Preventing Email Spoofing</title><link>https://dzhy.dev/posts/2019-04-11-securing-email-domain/</link><pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-04-11-securing-email-domain/</guid><description>Preventing email spoofing is important to all domain owners, even if you are not using your domain for email services as it affects the reputation of your domain. In this post I will talk about how to prevent email spoofing with SPF, DKIM and DMARC.
+Sender Policy Framework (SPF) SPF allows the receiver to check that an email claiming to come from a specific domain comes from an IP address authorized by that domain&amp;rsquo;s administrators.</description><content:encoded><![CDATA[<p>Preventing email spoofing is important to all domain owners, even if you are not using your domain for email services as it affects the reputation of your domain. In this post I will talk about how to prevent email spoofing with SPF, DKIM and DMARC.</p>
+<h2 id="sender-policy-framework-spf">Sender Policy Framework (SPF)</h2>
+<p>SPF allows the receiver to check that an email claiming to come from a specific domain comes from an IP address authorized by that domain&rsquo;s administrators. The list of authorized sending hosts and IP addresses for a domain is in the SPF record for the domain which is published in the DNS TXT records for that domain.</p>
+<h3 id="how-it-works">How it works</h3>
+<p>The receiver checks if the sender is valid by querying the domain in the message header field <code>Return-Path</code> aka <code>MAIL FROM</code> for SPF record and checking the sender&rsquo;s IP against that record.</p>
+<h3 id="setup">Setup</h3>
+<p>Place the SPF record at the root of your domain.</p>
+<table>
+<thead>
+<tr>
+<th>Directive</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-all</td>
+<td>non-matching emails will be rejected</td>
+</tr>
+<tr>
+<td>~all</td>
+<td>non-matching emails will be accepted but marked</td>
+</tr>
+<tr>
+<td>+all</td>
+<td>allows any ip to send email from your domain.</td>
+</tr>
+</tbody>
+</table>
+<p>This SPF record below will allow emails from <code>10.0.0.1</code>, <code>2001:0db8:85a3:0000:0000:8a2e:0370:7334</code> and all the allowed IPs from the spf record from <code>example.com</code> and reject emails sent from all other IPs.</p>
+<pre tabindex="0"><code>v=spf1 ip4:10.0.0.1 ip6:2001:0db8:85a3:0000:0000:8a2e:0370:7334 include:example.com -all
+</code></pre><p>For more options check out the <a href="https://tools.ietf.org/html/rfc7208#section-4.6.1">rfc</a>.</p>
+<h4 id="things-to-note">Things to Note</h4>
+<p>SPF records cannot include more than ten dns queries.</p>
+<p>A single TXT record cannot be more than 255 characters, but we can <a href="https://kb.isc.org/docs/aa-00356">concate TXT records</a> to form a SPF record of a longer length.</p>
+<blockquote>
+<p>The DNS overhead for a reply that contains a single TXT record with two strings is about 34 bytes, plus the length of the hostname that’s being queries (e.g. &ldquo;spf.example.com&rdquo; is 15 bytes). So to keep within the 512 byte limit you need to break your SPF into chunks of no more than 478 minus the length of the hostname.</p>
+</blockquote>
+<p>Another option is <a href="https://help.blacknight.com/hc/en-us/articles/212512389-Creating-large-SPF-records-with-many-entries">SPF record chaining</a>.</p>
+<p>You can check your spf record using this <a href="http://spf.myisp.ch/">SPF Checker</a>.</p>
+<h4 id="macros">Macros</h4>
+<p>It is possible to create more complex SPF records using <a href="https://tools.ietf.org/html/rfc7208#section-7">marcros</a>.</p>
+<h3 id="problem">Problem</h3>
+<p>SPF does not validate the <code>From</code> header which is shown in most clients as the actual sender of the message, but uses the <code>Return-Path</code> to determine the sending domain.</p>
+<p>For example, a email was sent with the <code>Return-Path</code> of <code>example.com</code> and a <code>From</code> field of <code>david@dzhy.dev</code> assuming <code>dzhy.dev</code> have SPF setup to not allow any IPs, if <code>example.com</code> has a SPF record that allows my IP, the SPF check will still pass, because it does not check the <code>From</code> field, instead it checks the <code>Return-Path</code>.</p>
+<h2 id="domain-keys-identified-mail-dkim">Domain Keys Identified Mail (DKIM)</h2>
+<p>DKIM checks that an email was indeed send and authorized by the owner of that domain using digital signatures. This DKIM signature is a header that is added to the message and is secured with encryption.</p>
+<h3 id="how-it-works-1">How it works</h3>
+<p>The DKIM signature is generated by the MTA (Mail Transfer Agent). It creates a hash of the email. This hash value is encrypted using the private key and attached to the email as the DKIM signature in the header.</p>
+<p>After receiving the email, the receiver verifies the DKIM signature using the public key in the TXT record of the domain specified in the signature, by decrypting the DKIM signature and comparing the decrypted hash value with the hash value of the email it received. If these two hashes are the same the MTA knows that the email has not been altered. This gives the user confirmation that the email was actually sent from the listed domain.</p>
+<h3 id="setup-1">Setup</h3>
+<p>Refer to your email service provider&rsquo;s documentation. Typically all you have to do is to add a DNS TXT record to your domain.</p>
+<h3 id="finding-dkim-selector">Finding DKIM selector</h3>
+<p>The DKIM record is at <code>selector._domainkey.dzhy.dev</code>, the selector can be any string, we can only find out the selector of a domain if we have the DKIM-Signature, of a email sent by that domain.</p>
+<p>In the signature, the <code>s</code> field is the selector, so in this case <code>s=zoho</code> means the selector is <code>zoho</code> and the DKIM public key will be at <code>zoho._domainkey.dzhy.dev</code>.</p>
+<pre tabindex="0"><code>DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1554622568; 
+s=zoho; d=dzhy.dev; i=david@dzhy.dev; h=Date:From:To:Message-Id:Subject:MIME-
+Version:Content-Type; l=721; bh=YLjE/ckf0hWWS6SSYjvfMS06DZjBcD0C0ignKAs7TUs=;
+b=HT4wf4u2t5PiApv9zgAWiyTbC8dwoE5qV7vZbGO+/1t+XUPOOlwGV3tfM/0/GqYl
+oVtsVDqykG1B2iKGlXIDJGSU6qzsuzxCmHlv3YaddIR7WWLteCvMM4lOg3ZzwSHtiNx 
+dVwG2fJ/iSgzB1AFrSQJa/C21ZewOKL0J8piwKYg=
+</code></pre><h3 id="problem-1">Problem</h3>
+<p>The dkim signature can be valid and have no relation to the <code>From</code> header.</p>
+<p>For example, I can have the following DKIM signature</p>
+<pre tabindex="0"><code>DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1554622568; 
+s=zoho; d=dzhy.dev; i=david@dzhy.dev; h=Date:From:To:Message-Id:Subject:MIME-
+Version:Content-Type; l=721; bh=YLjE/ckf0hWWS6SSYjvfMS06DZjBcD0C0ignKAs7TUs=;
+b=HT4wf4u2t5PiApv9zgAWiyTbC8dwoE5qV7vZbGO+/1t+XUPOOlwGV3tfM/0/GqYl
+oVtsVDqykG1B2iKGlXIDJGSU6qzsuzxCmHlv3YaddIR7WWLteCvMM4lOg3ZzwSHtiNx 
+dVwG2fJ/iSgzB1AFrSQJa/C21ZewOKL0J8piwKYg=
+</code></pre><p>which is for the domain <code>dzhy.dev</code> but my <code>From</code> field is <code>david@example.com</code>, this will be valid because the signature is valid for the given domain <code>dzhy.dev</code>, it does not check the signature using the domain in the <code>From</code> field.</p>
+<h2 id="domain-based-message-authentication-reporting--conformance-dmarc">Domain-based Message Authentication, Reporting &amp; Conformance (DMARC)</h2>
+<p>DMARC builds on the widely deployed SPF and DKIM protocols, to improve and monitor protection of the domain from fraudulent email. It is meant to fix the issues of SPF and DKIM. Implementing SPF and DKIM by themselves does not prevent spoofing, but combined with DMARC they will work great.</p>
+<p>DMARC requires authentication alignment with the domain used in the header <code>From</code>, for both SPF and DKIM. Meaning the domain in DKIM must share the same <a href="https://tools.ietf.org/html/rfc7489#section-3.2">organizational domain</a> as the <code>From</code> header or be the exact same depending on the configuration, the domain for SPF the <code>Return-Path</code> and the header <code>From</code> should share an <a href="https://tools.ietf.org/html/rfc7489#section-3.2">organizational domain</a> or be the exact same depending on the configuration.</p>
+<h2 id="how-it-works-2">How it works</h2>
+<p>The receiver extracts the domain in the <code>From</code> header, and queries for a DMARC policy record of that domain. If it exists, perform DKIM and SPF checks, then perform Identifier Alignment checks. Emails that fail the DMARC mechanism check are disposed of in accordance with the discovered DMARC policy of the Domain Owner.</p>
+<h2 id="setup-2">Setup</h2>
+<p>Domain Owner DMARC preferences are stored as DNS TXT records in subdomains named <code>_dmarc</code>.  For example, the Domain Owner of <code>example.com</code> would post DMARC preferences in a TXT record at <code>_dmarc.example.com</code>.</p>
+<p>The table below explains each tag of the sample DMARC policy.</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v=DMARC1</td>
+<td>Specify DMARC version</td>
+</tr>
+<tr>
+<td>p=reject</td>
+<td>Reject any mail that fails the DMARC check</td>
+</tr>
+<tr>
+<td>rua=mailto:dmarc@dzhy.dev</td>
+<td>Send aggregate reports to <code>dmarc@dzhy.dev</code></td>
+</tr>
+<tr>
+<td>adkim=s</td>
+<td>DKIM Identifier Alignment strict mode</td>
+</tr>
+<tr>
+<td>adkim=s</td>
+<td>SPF Identifier Alignment strict mode</td>
+</tr>
+<tr>
+<td>ruf=mailto:dmarc@dzhy.dev</td>
+<td>Send failure reports to <code>dmarc@dzhy.dev</code></td>
+</tr>
+<tr>
+<td>fo=1</td>
+<td>Generate a DMARC failure report if any checks failed</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>By default daily aggregate reports will be sent if you set a <code>rua</code> address.</p>
+</blockquote>
+<p>Sample DMARC policy.</p>
+<pre tabindex="0"><code>v=DMARC1; p=reject; rua=mailto:dmarc@dzhy.dev; adkim=s ; aspf=s ; ruf=mailto:dmarc@dzhy.dev ; fo=1
+</code></pre><p>For other options refer to <a href="https://tools.ietf.org/html/rfc7489#section-6.3">rfc7489 Section 6.3</a></p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://tools.ietf.org/html/rfc7208">SPF RFC 7208</a></li>
+<li><a href="http://www.dkim.org/specs/draft-ietf-dkim-deployment-11.html">DKIM Development, Deployment and Operations</a></li>
+<li><a href="https://dmarc.org/resources/specification/">DMARC Specification</a></li>
+</ul>
+]]></content:encoded></item><item><title>Firefly III Setup with Docker and HTTPS</title><link>https://dzhy.dev/posts/2019-04-06-firefly-iii-setup-with-docker-and-https/</link><pubDate>Sat, 06 Apr 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-04-06-firefly-iii-setup-with-docker-and-https/</guid><description>In this tutorial we will setup Firefly III using docker and setup a reverse proxy to enable https, as Firefly III itself does not support https. For the purpose of this tutorial we will be using firefly.example.com as the domain.
+Note: This tutorial assumes you have already setup a mysql/postgres database.
+Docker If you have not yet installed docker refere to docker install documentation to install it first.</description><content:encoded><![CDATA[<p>In this tutorial we will setup <a href="https://firefly-iii.org/">Firefly III</a> using docker and setup a reverse proxy to enable https, as <em>Firefly III</em> itself does not support https. For the purpose of this tutorial we will be using <code>firefly.example.com</code> as the domain.</p>
+<blockquote>
+<p>Note: This tutorial assumes you have already setup a mysql/postgres database.</p>
+</blockquote>
+<h2 id="docker">Docker</h2>
+<blockquote>
+<p>If you have not yet installed docker refere to <a href="https://docs.docker.com/install/">docker install documentation</a> to install it first.</p>
+</blockquote>
+<p>First we create persistent volumes to store uploaded files and exported data.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker volume create firefly_iii_export
+docker volume create firefly_iii_upload
+</code></pre></div><p>To ensure the site works behind our reverse proxy and all the links on the site is using https we have to set the following environment variables.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">APP_URL<span style="color:#f92672">=</span>https://firefly.example.com
+TRUSTED_PROXIES<span style="color:#f92672">=</span>**
+</code></pre></div><p>The app key is any 32 character alphanumeric string. The database by default is assumed to be MySQL, if you are using a Postgres database you have to set an extra environment vairable <code>DB_CONNECTION=pgsql</code>.</p>
+<p>The following command will run the firefly-iii container and map it to port <code>4040</code> on the host.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker run -d <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-v firefly_iii_export:/var/www/firefly-iii/storage/export <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-v firefly_iii_upload:/var/www/firefly-iii/storage/upload <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-p 127.0.0.1:4040:80 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_APP_ENV<span style="color:#f92672">=</span>local <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_APP_KEY<span style="color:#f92672">=</span><span style="color:#ae81ff">12345678901234567890123456789012</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_HOST<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_PORT<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_NAME<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_USER<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e FF_DB_PASSWORD<span style="color:#f92672">=</span>CHANGEME <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e APP_URL<span style="color:#f92672">=</span>https://firefly.example.com <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-e TRUSTED_PROXIES<span style="color:#f92672">=</span>** <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>--name firefly-iii-c1 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>jc5x/firefly-iii:latest
+</code></pre></div><h2 id="enable-recurring-transactions">Enable Recurring Transactions</h2>
+<blockquote>
+<p>You can ignore this if you are not planning on using recurring transactions.</p>
+</blockquote>
+<p>Drop into shell on the container</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker exec -it firefly-iii-c1 /bin/bash
+</code></pre></div><p>Install cron in docker container</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">apt update
+apt install cron
+</code></pre></div><p>Run <code>crontab -e</code> to edit cronjobs, then add the following cron job to enable recurring transactions.</p>
+<pre tabindex="0"><code>0 0 * * * /usr/local/bin/php /var/www/firefly-iii/artisan firefly:cron
+</code></pre><p>These changes will persist even if you restart the container, however if you start another container from the image <code>jc5x/firefly-iii:latest</code> you have to do these steps again.</p>
+<h2 id="setup-nginx">Setup Nginx</h2>
+<p>If you are using cloudflare as your dns provider, you can refer to [this post]({% post_url 2019-04-03-Certbot-Cloudflare-DNS-Plugin %}) on getting TLS certificates from <em>Let&rsquo;s Encrypt</em> using the cloudflare dns plugin.</p>
+<p>This is a sample site configuration for nginx. Change <code>firefly.example.com</code> to your domain. You should also change the <code>proxy_pass</code> parameter on line 17 if you mapped the host port of <em>Firefly III</em> to a port other than <code>4040</code>, or if the docker container is running on another host.</p>
+<pre tabindex="0"><code>server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name firefly.example.com;
+
+    # SSL
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
+
+    # logging
+    access_log /var/log/nginx/firefly.example.com.access.log;
+    error_log /var/log/nginx/firefly.example.com.error.log warn;
+
+    # reverse proxy
+    location / {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_http_version      1.1;
+        proxy_cache_bypass      $http_upgrade;
+        proxy_set_header Upgrade                $http_upgrade;
+        proxy_set_header Connection             &quot;upgrade&quot;;
+        proxy_set_header Host                   $host;
+        proxy_set_header X-Real-IP              $remote_addr;
+        proxy_set_header X-Forwarded-For        $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto      $scheme;
+        proxy_set_header X-Forwarded-Host       $host;
+        proxy_set_header X-Forwarded-Port       $server_port;
+    }
+    
+    # security headers
+    add_header X-Frame-Options &quot;SAMEORIGIN&quot; always;
+    add_header X-XSS-Protection &quot;1; mode=block&quot; always;
+    add_header X-Content-Type-Options &quot;nosniff&quot; always;
+    add_header Referrer-Policy &quot;no-referrer-when-downgrade&quot; always;
+    add_header Content-Security-Policy &quot;default-src * data: 'unsafe-eval' 'unsafe-inline'&quot; always;
+    add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot; always;
+
+    # . files
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+
+    # gzip
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss applica
+    tion/atom+xml image/svg+xml;
+}
+
+# subdomains redirect
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name *.firefly.example.com;
+
+    # SSL
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
+
+    return 301 https://firefly.example.com$request_uri;
+}
+
+# HTTP redirect
+server {
+    listen 80;
+    listen [::]:80;
+    server_name .firefly.example.com;
+
+    location / {
+        return 301 https://firefly.example.com$request_uri;
+    }
+}
+</code></pre><h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://docs.firefly-iii.org/en/latest/installation/docker.html">Installation Documentation</a></li>
+<li><a href="https://docs.firefly-iii.org/en/latest/installation/cronjob.html#cronjobs">Cronjob Documentation</a></li>
+</ul>
+]]></content:encoded></item><item><title>Certbot - Cloudflare DNS Plugin</title><link>https://dzhy.dev/posts/2019-04-03-certbot-cloudflare-dns-plugin/</link><pubDate>Tue, 02 Apr 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-04-03-certbot-cloudflare-dns-plugin/</guid><description>In this tutorial we will get a wildcard certificate from letsencrypt using the cloudflare dns plugin. For the purpose of this tutorial we will be using example.com as the domain.
+Install Cloudflare DNS Plugin This tutorial assumes you have already installed certbot. If you have not, you can follow the instructions from certbot-eff.
+sudo apt update sudo apt install python3-certbot-dns-cloudflare -y API Credentials mkdir -p /root/secrets/certbot Retrieve your api key from cloudflare.</description><content:encoded><![CDATA[<p>In this tutorial we will get a wildcard certificate from letsencrypt using the cloudflare dns plugin. For the purpose of this tutorial we will be using <code>example.com</code> as the domain.</p>
+<h3 id="install-cloudflare-dns-plugin">Install Cloudflare DNS Plugin</h3>
+<p>This tutorial assumes you have already installed certbot. If you have not, you can follow the instructions from <a href="https://certbot.eff.org/">certbot-eff</a>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt update
+sudo apt install python3-certbot-dns-cloudflare -y
+</code></pre></div><h3 id="api-credentials">API Credentials</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir -p /root/secrets/certbot
+</code></pre></div><p>Retrieve your api key from cloudflare.</p>
+<blockquote>
+<ol>
+<li>Login to the Cloudflare account.</li>
+<li>Go to My Profile.</li>
+<li>Scroll down to API Keys and locate Global API Key.</li>
+<li>Click API Key to see your API identifier.</li>
+</ol>
+</blockquote>
+<p>Create the file below with your cloudflare information. We will save the file at <code>/root/secrets/certbot/cloudflare.ini</code>.</p>
+<pre tabindex="0"><code># Cloudflare API credentials used by Certbot
+dns_cloudflare_email = cloudflare@example.com
+dns_cloudflare_api_key = 0123456789abcdef0123456789abcdef01234567
+</code></pre><p>Secure the folder and file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">find /root/secrets -type d -exec chmod <span style="color:#ae81ff">700</span> <span style="color:#f92672">{}</span> <span style="color:#ae81ff">\;</span>
+find /root/secrets -type f -exec chmod <span style="color:#ae81ff">600</span> <span style="color:#f92672">{}</span> <span style="color:#ae81ff">\;</span>
+</code></pre></div><h3 id="requesting-for-certificate">Requesting for Certificate</h3>
+<p>The <code>--dns-cloudflare-propagation-seconds</code> option defines the number of seconds to wait before doing the validation checks, you can change it accordingly.</p>
+<p>It is important that we specify the server to be the ACME v2 server as the v1 server does not support wildcard certificates.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">certbot certonly <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --preferred-challenges dns <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --email admin@example.com
+  --dns-cloudflare-credentials /root/secrets/certbot/cloudflare.ini <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --dns-cloudflare-propagation-seconds <span style="color:#ae81ff">60</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  -d <span style="color:#e6db74">&#34;*.example.com&#34;</span> -d example.com <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --server https://acme-v02.api.letsencrypt.org/directory <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --agree-tos
+</code></pre></div><p>We should now have our cert at <code>/etc/letsencrypt/live/example.com/</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">root@server:~# ls -la /etc/letsencrypt/live/example.com
+total <span style="color:#ae81ff">12</span>
+drwxr-xr-x <span style="color:#ae81ff">2</span> root root <span style="color:#ae81ff">4096</span> Apr  <span style="color:#ae81ff">3</span> 10:44 .
+drwx------ <span style="color:#ae81ff">3</span> root root <span style="color:#ae81ff">4096</span> Apr  <span style="color:#ae81ff">3</span> 10:44 ..
+lrwxrwxrwx <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">34</span> Apr  <span style="color:#ae81ff">3</span> 10:44 cert.pem -&gt; ../../archive/example.com/cert1.pem
+lrwxrwxrwx <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">35</span> Apr  <span style="color:#ae81ff">3</span> 10:44 chain.pem -&gt; ../../archive/example.com/chain1.pem
+lrwxrwxrwx <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">39</span> Apr  <span style="color:#ae81ff">3</span> 10:44 fullchain.pem -&gt; ../../archive/example.com/fullchain1.pem
+lrwxrwxrwx <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">37</span> Apr  <span style="color:#ae81ff">3</span> 10:44 privkey.pem -&gt; ../../archive/example.com/privkey1.pem
+-rw-r--r-- <span style="color:#ae81ff">1</span> root root  <span style="color:#ae81ff">692</span> Apr  <span style="color:#ae81ff">3</span> 10:44 README
+</code></pre></div><h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://certbot.eff.org/">Certbot-eff</a></li>
+<li><a href="https://certbot-dns-cloudflare.readthedocs.io/en/stable/">certbot-dns-cloudflare</a></li>
+<li><a href="https://support.cloudflare.com/hc/en-us/articles/200167836-Where-do-I-find-my-Cloudflare-API-key-">Cloudflare API Key</a></li>
+</ul>
+]]></content:encoded></item></channel></rss>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Email on David Zhu | Blog</title><link>https://dzhy.dev/tags/email/</link><description>Recent content in Email on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 11 Apr 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/tags/email/index.xml" rel="self" type="application/rss+xml"/><item><title>Preventing Email Spoofing</title><link>https://dzhy.dev/posts/2019-04-11-securing-email-domain/</link><pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2019-04-11-securing-email-domain/</guid><description>Preventing email spoofing is important to all domain owners, even if you are not using your domain for email services as it affects the reputation of your domain. In this post I will talk about how to prevent email spoofing with SPF, DKIM and DMARC.
+Sender Policy Framework (SPF) SPF allows the receiver to check that an email claiming to come from a specific domain comes from an IP address authorized by that domain&amp;rsquo;s administrators.</description><content:encoded><![CDATA[<p>Preventing email spoofing is important to all domain owners, even if you are not using your domain for email services as it affects the reputation of your domain. In this post I will talk about how to prevent email spoofing with SPF, DKIM and DMARC.</p>
+<h2 id="sender-policy-framework-spf">Sender Policy Framework (SPF)</h2>
+<p>SPF allows the receiver to check that an email claiming to come from a specific domain comes from an IP address authorized by that domain&rsquo;s administrators. The list of authorized sending hosts and IP addresses for a domain is in the SPF record for the domain which is published in the DNS TXT records for that domain.</p>
+<h3 id="how-it-works">How it works</h3>
+<p>The receiver checks if the sender is valid by querying the domain in the message header field <code>Return-Path</code> aka <code>MAIL FROM</code> for SPF record and checking the sender&rsquo;s IP against that record.</p>
+<h3 id="setup">Setup</h3>
+<p>Place the SPF record at the root of your domain.</p>
+<table>
+<thead>
+<tr>
+<th>Directive</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-all</td>
+<td>non-matching emails will be rejected</td>
+</tr>
+<tr>
+<td>~all</td>
+<td>non-matching emails will be accepted but marked</td>
+</tr>
+<tr>
+<td>+all</td>
+<td>allows any ip to send email from your domain.</td>
+</tr>
+</tbody>
+</table>
+<p>This SPF record below will allow emails from <code>10.0.0.1</code>, <code>2001:0db8:85a3:0000:0000:8a2e:0370:7334</code> and all the allowed IPs from the spf record from <code>example.com</code> and reject emails sent from all other IPs.</p>
+<pre tabindex="0"><code>v=spf1 ip4:10.0.0.1 ip6:2001:0db8:85a3:0000:0000:8a2e:0370:7334 include:example.com -all
+</code></pre><p>For more options check out the <a href="https://tools.ietf.org/html/rfc7208#section-4.6.1">rfc</a>.</p>
+<h4 id="things-to-note">Things to Note</h4>
+<p>SPF records cannot include more than ten dns queries.</p>
+<p>A single TXT record cannot be more than 255 characters, but we can <a href="https://kb.isc.org/docs/aa-00356">concate TXT records</a> to form a SPF record of a longer length.</p>
+<blockquote>
+<p>The DNS overhead for a reply that contains a single TXT record with two strings is about 34 bytes, plus the length of the hostname that’s being queries (e.g. &ldquo;spf.example.com&rdquo; is 15 bytes). So to keep within the 512 byte limit you need to break your SPF into chunks of no more than 478 minus the length of the hostname.</p>
+</blockquote>
+<p>Another option is <a href="https://help.blacknight.com/hc/en-us/articles/212512389-Creating-large-SPF-records-with-many-entries">SPF record chaining</a>.</p>
+<p>You can check your spf record using this <a href="http://spf.myisp.ch/">SPF Checker</a>.</p>
+<h4 id="macros">Macros</h4>
+<p>It is possible to create more complex SPF records using <a href="https://tools.ietf.org/html/rfc7208#section-7">marcros</a>.</p>
+<h3 id="problem">Problem</h3>
+<p>SPF does not validate the <code>From</code> header which is shown in most clients as the actual sender of the message, but uses the <code>Return-Path</code> to determine the sending domain.</p>
+<p>For example, a email was sent with the <code>Return-Path</code> of <code>example.com</code> and a <code>From</code> field of <code>david@dzhy.dev</code> assuming <code>dzhy.dev</code> have SPF setup to not allow any IPs, if <code>example.com</code> has a SPF record that allows my IP, the SPF check will still pass, because it does not check the <code>From</code> field, instead it checks the <code>Return-Path</code>.</p>
+<h2 id="domain-keys-identified-mail-dkim">Domain Keys Identified Mail (DKIM)</h2>
+<p>DKIM checks that an email was indeed send and authorized by the owner of that domain using digital signatures. This DKIM signature is a header that is added to the message and is secured with encryption.</p>
+<h3 id="how-it-works-1">How it works</h3>
+<p>The DKIM signature is generated by the MTA (Mail Transfer Agent). It creates a hash of the email. This hash value is encrypted using the private key and attached to the email as the DKIM signature in the header.</p>
+<p>After receiving the email, the receiver verifies the DKIM signature using the public key in the TXT record of the domain specified in the signature, by decrypting the DKIM signature and comparing the decrypted hash value with the hash value of the email it received. If these two hashes are the same the MTA knows that the email has not been altered. This gives the user confirmation that the email was actually sent from the listed domain.</p>
+<h3 id="setup-1">Setup</h3>
+<p>Refer to your email service provider&rsquo;s documentation. Typically all you have to do is to add a DNS TXT record to your domain.</p>
+<h3 id="finding-dkim-selector">Finding DKIM selector</h3>
+<p>The DKIM record is at <code>selector._domainkey.dzhy.dev</code>, the selector can be any string, we can only find out the selector of a domain if we have the DKIM-Signature, of a email sent by that domain.</p>
+<p>In the signature, the <code>s</code> field is the selector, so in this case <code>s=zoho</code> means the selector is <code>zoho</code> and the DKIM public key will be at <code>zoho._domainkey.dzhy.dev</code>.</p>
+<pre tabindex="0"><code>DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1554622568; 
+s=zoho; d=dzhy.dev; i=david@dzhy.dev; h=Date:From:To:Message-Id:Subject:MIME-
+Version:Content-Type; l=721; bh=YLjE/ckf0hWWS6SSYjvfMS06DZjBcD0C0ignKAs7TUs=;
+b=HT4wf4u2t5PiApv9zgAWiyTbC8dwoE5qV7vZbGO+/1t+XUPOOlwGV3tfM/0/GqYl
+oVtsVDqykG1B2iKGlXIDJGSU6qzsuzxCmHlv3YaddIR7WWLteCvMM4lOg3ZzwSHtiNx 
+dVwG2fJ/iSgzB1AFrSQJa/C21ZewOKL0J8piwKYg=
+</code></pre><h3 id="problem-1">Problem</h3>
+<p>The dkim signature can be valid and have no relation to the <code>From</code> header.</p>
+<p>For example, I can have the following DKIM signature</p>
+<pre tabindex="0"><code>DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1554622568; 
+s=zoho; d=dzhy.dev; i=david@dzhy.dev; h=Date:From:To:Message-Id:Subject:MIME-
+Version:Content-Type; l=721; bh=YLjE/ckf0hWWS6SSYjvfMS06DZjBcD0C0ignKAs7TUs=;
+b=HT4wf4u2t5PiApv9zgAWiyTbC8dwoE5qV7vZbGO+/1t+XUPOOlwGV3tfM/0/GqYl
+oVtsVDqykG1B2iKGlXIDJGSU6qzsuzxCmHlv3YaddIR7WWLteCvMM4lOg3ZzwSHtiNx 
+dVwG2fJ/iSgzB1AFrSQJa/C21ZewOKL0J8piwKYg=
+</code></pre><p>which is for the domain <code>dzhy.dev</code> but my <code>From</code> field is <code>david@example.com</code>, this will be valid because the signature is valid for the given domain <code>dzhy.dev</code>, it does not check the signature using the domain in the <code>From</code> field.</p>
+<h2 id="domain-based-message-authentication-reporting--conformance-dmarc">Domain-based Message Authentication, Reporting &amp; Conformance (DMARC)</h2>
+<p>DMARC builds on the widely deployed SPF and DKIM protocols, to improve and monitor protection of the domain from fraudulent email. It is meant to fix the issues of SPF and DKIM. Implementing SPF and DKIM by themselves does not prevent spoofing, but combined with DMARC they will work great.</p>
+<p>DMARC requires authentication alignment with the domain used in the header <code>From</code>, for both SPF and DKIM. Meaning the domain in DKIM must share the same <a href="https://tools.ietf.org/html/rfc7489#section-3.2">organizational domain</a> as the <code>From</code> header or be the exact same depending on the configuration, the domain for SPF the <code>Return-Path</code> and the header <code>From</code> should share an <a href="https://tools.ietf.org/html/rfc7489#section-3.2">organizational domain</a> or be the exact same depending on the configuration.</p>
+<h2 id="how-it-works-2">How it works</h2>
+<p>The receiver extracts the domain in the <code>From</code> header, and queries for a DMARC policy record of that domain. If it exists, perform DKIM and SPF checks, then perform Identifier Alignment checks. Emails that fail the DMARC mechanism check are disposed of in accordance with the discovered DMARC policy of the Domain Owner.</p>
+<h2 id="setup-2">Setup</h2>
+<p>Domain Owner DMARC preferences are stored as DNS TXT records in subdomains named <code>_dmarc</code>.  For example, the Domain Owner of <code>example.com</code> would post DMARC preferences in a TXT record at <code>_dmarc.example.com</code>.</p>
+<p>The table below explains each tag of the sample DMARC policy.</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v=DMARC1</td>
+<td>Specify DMARC version</td>
+</tr>
+<tr>
+<td>p=reject</td>
+<td>Reject any mail that fails the DMARC check</td>
+</tr>
+<tr>
+<td>rua=mailto:dmarc@dzhy.dev</td>
+<td>Send aggregate reports to <code>dmarc@dzhy.dev</code></td>
+</tr>
+<tr>
+<td>adkim=s</td>
+<td>DKIM Identifier Alignment strict mode</td>
+</tr>
+<tr>
+<td>adkim=s</td>
+<td>SPF Identifier Alignment strict mode</td>
+</tr>
+<tr>
+<td>ruf=mailto:dmarc@dzhy.dev</td>
+<td>Send failure reports to <code>dmarc@dzhy.dev</code></td>
+</tr>
+<tr>
+<td>fo=1</td>
+<td>Generate a DMARC failure report if any checks failed</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>By default daily aggregate reports will be sent if you set a <code>rua</code> address.</p>
+</blockquote>
+<p>Sample DMARC policy.</p>
+<pre tabindex="0"><code>v=DMARC1; p=reject; rua=mailto:dmarc@dzhy.dev; adkim=s ; aspf=s ; ruf=mailto:dmarc@dzhy.dev ; fo=1
+</code></pre><p>For other options refer to <a href="https://tools.ietf.org/html/rfc7489#section-6.3">rfc7489 Section 6.3</a></p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://tools.ietf.org/html/rfc7208">SPF RFC 7208</a></li>
+<li><a href="http://www.dkim.org/specs/draft-ietf-dkim-deployment-11.html">DKIM Development, Deployment and Operations</a></li>
+<li><a href="https://dmarc.org/resources/specification/">DMARC Specification</a></li>
+</ul>
+]]></content:encoded></item></channel></rss>
