@@ -1,0 +1,65 @@
+baseURL = 'https://dzhy.dev/'
+languageCode = 'en-us'
+title = 'David Zhu | Blog'
+theme = 'PaperMod'
+
+paginate = 5
+enableRobotsTXT = true
+buildDrafts = false
+bulidFuture = false
+buildExpired = false
+enableEmoji = true
+math = false
+enableInlineShortcodes = true
+
+[params]
+env = 'production'
+description = "David Zhu's Blog"
+favicon = '/favicon-32x32.png'
+author = 'David Zhu'
+defaultTheme = 'dark'
+disableThemeToggle = true
+ShowReadingTime = true
+ShowCodeCopyButtons = true
+ShowFullTextinRSS = true
+ShowPostNavLinks = true
+showtoc = true
+tocopen = false
+ShowBreadCrumbs = true
+comments = false
+hideFooter = false
+# ShowShareButtons = true
+# ShareButtons = ['reddit', 'twitter']
+
+socialIcons = [
+    {name = 'rss', url = 'index.xml'},
+    {name = 'email', url = 'mailto:david@dzhy.dev'},
+    {name = 'github', url = 'https://github.com/PotatoDrug'},
+    {name = 'linkedin', url = 'https://www.linkedin.com/in/dzhy'},
+    {name = 'keybase', url = 'https://keybase.io/protox'},
+    {name = 'hackthebox', url = 'https://app.hackthebox.com/profile/27688'},
+]
+
+    [params.homeInfoParams]
+    Title = 'Hi there'
+    Content = 'Welcome to my blog'
+
+    [params.fuseOpts]
+    isCaseSensitive = false
+    shouldSort = true
+
+[menu]
+main = [
+    # lower weighted elements will be placed in front
+    {identifier = 'tags', name = 'tags', url = '/tags/', weight = 5},
+    {identifier = 'search', name = 'search', url = '/search/', weight = 10},
+    {identifier = 'about', name = 'about', url = '/about/', weight = 1},
+    {identifier = 'archive', name = 'archive', url = '/archive/', weight = 3}
+]
+
+[outputs]
+home = [
+    'HTML',
+    'RSS',
+    'JSON'
+]
