@@ -6,7 +6,7 @@ hideMeta: true
 ---
 
 
-Hi, I’m David. My current areas of interest are Infosec, Programming Languages, Vim and Personal
+Hi, I’m David. My current areas of interest are Infosec, Programming Languages, Ergonomics and Personal
 Knowledge Management.
 
 

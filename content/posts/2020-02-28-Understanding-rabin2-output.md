@@ -1,6 +1,4 @@
 ---
-layout: post
-header-style: text
 title:  "Understanding rabin2 output"
 date:   2020-02-28 00:00:00
 author: "David"
