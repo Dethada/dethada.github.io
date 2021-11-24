@@ -68,6 +68,18 @@
 </header>
 <article class=post-entry>
 <header class=entry-header>
+<h2>Comfort with a 34 key Keyboard
+</h2>
+</header>
+<section class=entry-content>
+<p>Comfort with a 34 key Keyboard My current keyboard is the Ferris v0.2. I’ve been using it for about 6 months now and it feels very much like my endgame keyboard. Before I go onto to tell you about why this is my endgame keyboard, I’ll tell you about my past keyboards.
+Past Keyboards Corsair K70 This was the first keyboard I bought, it’s a full sized keyboard, back then having more keys at my disposal seemed like a good idea....</p>
+</section>
+<footer class=entry-footer><span title="2021-11-24 19:29:48 +0800 +0800">November 24, 2021</span>&nbsp;·&nbsp;4 min&nbsp;·&nbsp;David Zhu</footer>
+<a class=entry-link aria-label="post link to Comfort with a 34 key Keyboard" href=https://dzhy.dev/posts/2021-11-24-comfort-with-a-34-key-keyboard/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
 <h2>Understanding rabin2 output
 </h2>
 </header>
@@ -131,11 +143,57 @@ After some hair tearing and swearing, I figured it out. This error occurs becaus
 <footer class=entry-footer><span title="2019-05-21 00:00:00 +0000 UTC">May 21, 2019</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;David</footer>
 <a class=entry-link aria-label="post link to System32 Magic" href=https://dzhy.dev/posts/2019-05-21-system32-magic/></a>
 </article>
-<footer class=page-footer>
-<nav class=pagination>
-<a class=next href=https://dzhy.dev/posts/page/2/>Next Page »</a>
-</nav>
-</footer>
+<article class=post-entry>
+<header class=entry-header>
+<h2>Where are the Strings in Windows Binaries
+</h2>
+</header>
+<section class=entry-content>
+<p>Prelude The Windows Binaries I’m talking about here are the ones that comes default with Windows provided by Microsoft.
+Searching for Strings in the binary I was analyzing a Windows binary C:\Windows\System32\where.exe when I realized the help text of the binary cannot be found anywhere in the binary.
+After some futher investigation using Process Monitor from Windows Sysinternals I found out that it is reading from C:\Windows\System32\en-US\where.exe.mui during it’s execution....</p>
+</section>
+<footer class=entry-footer><span title="2019-05-04 00:00:00 +0000 UTC">May 4, 2019</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;David</footer>
+<a class=entry-link aria-label="post link to Where are the Strings in Windows Binaries" href=https://dzhy.dev/posts/2019-05-04-where-are-the-strings-in-windows-binaries/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>Preventing Email Spoofing
+</h2>
+</header>
+<section class=entry-content>
+<p>Preventing email spoofing is important to all domain owners, even if you are not using your domain for email services as it affects the reputation of your domain. In this post I will talk about how to prevent email spoofing with SPF, DKIM and DMARC.
+Sender Policy Framework (SPF) SPF allows the receiver to check that an email claiming to come from a specific domain comes from an IP address authorized by that domain’s administrators....</p>
+</section>
+<footer class=entry-footer><span title="2019-04-11 00:00:00 +0000 UTC">April 11, 2019</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;David</footer>
+<a class=entry-link aria-label="post link to Preventing Email Spoofing" href=https://dzhy.dev/posts/2019-04-11-securing-email-domain/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>Firefly III Setup with Docker and HTTPS
+</h2>
+</header>
+<section class=entry-content>
+<p>In this tutorial we will setup Firefly III using docker and setup a reverse proxy to enable https, as Firefly III itself does not support https. For the purpose of this tutorial we will be using firefly.example.com as the domain.
+Note: This tutorial assumes you have already setup a mysql/postgres database.
+Docker If you have not yet installed docker refere to docker install documentation to install it first....</p>
+</section>
+<footer class=entry-footer><span title="2019-04-06 00:00:00 +0000 UTC">April 6, 2019</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;David</footer>
+<a class=entry-link aria-label="post link to Firefly III Setup with Docker and HTTPS" href=https://dzhy.dev/posts/2019-04-06-firefly-iii-setup-with-docker-and-https/></a>
+</article>
+<article class=post-entry>
+<header class=entry-header>
+<h2>Certbot - Cloudflare DNS Plugin
+</h2>
+</header>
+<section class=entry-content>
+<p>In this tutorial we will get a wildcard certificate from letsencrypt using the cloudflare dns plugin. For the purpose of this tutorial we will be using example.com as the domain.
+Install Cloudflare DNS Plugin This tutorial assumes you have already installed certbot. If you have not, you can follow the instructions from certbot-eff.
+sudo apt update sudo apt install python3-certbot-dns-cloudflare -y API Credentials mkdir -p /root/secrets/certbot Retrieve your api key from cloudflare....</p>
+</section>
+<footer class=entry-footer><span title="2019-04-02 00:00:00 +0000 UTC">April 2, 2019</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;David</footer>
+<a class=entry-link aria-label="post link to Certbot - Cloudflare DNS Plugin" href=https://dzhy.dev/posts/2019-04-03-certbot-cloudflare-dns-plugin/></a>
+</article>
 </main>
 <footer class=footer>
 <span>&copy; 2021 <a href=https://dzhy.dev/>David Zhu | Blog</a></span>

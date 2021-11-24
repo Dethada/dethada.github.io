@@ -1,4 +1,78 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on David Zhu | Blog</title><link>https://dzhy.dev/posts/</link><description>Recent content in Posts on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 28 Feb 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://dzhy.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Understanding rabin2 output</title><link>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</link><pubDate>Fri, 28 Feb 2020 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</guid><description>Prelude If you don&amp;rsquo;t know what rabin2 is/what it does.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on David Zhu | Blog</title><link>https://dzhy.dev/posts/</link><description>Recent content in Posts on David Zhu | Blog</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 24 Nov 2021 19:29:48 +0800</lastBuildDate><atom:link href="https://dzhy.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Comfort with a 34 key Keyboard</title><link>https://dzhy.dev/posts/2021-11-24-comfort-with-a-34-key-keyboard/</link><pubDate>Wed, 24 Nov 2021 19:29:48 +0800</pubDate><guid>https://dzhy.dev/posts/2021-11-24-comfort-with-a-34-key-keyboard/</guid><description>Comfort with a 34 key Keyboard My current keyboard is the Ferris v0.2. I&amp;rsquo;ve been using it for about 6 months now and it feels very much like my endgame keyboard. Before I go onto to tell you about why this is my endgame keyboard, I&amp;rsquo;ll tell you about my past keyboards.
+Past Keyboards Corsair K70 This was the first keyboard I bought, it&amp;rsquo;s a full sized keyboard, back then having more keys at my disposal seemed like a good idea.</description><content:encoded><![CDATA[<h1 id="comfort-with-a-34-key-keyboard">Comfort with a 34 key Keyboard</h1>
+<p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/keyboards.jpg" alt="My Keyboards"  />
+</p>
+<p>My current keyboard is the <a href="https://github.com/pierrechevalier83/ferris">Ferris v0.2</a>. I&rsquo;ve been
+using it for about 6 months now and it feels very much like my endgame keyboard. Before I go onto to
+tell you about why this is my endgame keyboard, I&rsquo;ll tell you about my past keyboards.</p>
+<h2 id="past-keyboards">Past Keyboards</h2>
+<h3 id="corsair-k70">Corsair K70</h3>
+<p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/corsair-keyboard.png" alt="Corsair K70 Keyboard"  />
+</p>
+<p>This was the first keyboard I bought, it&rsquo;s a full sized keyboard, back then having more keys at my disposal seemed like a good idea.</p>
+<p>If I was typing for a long time on this keyboard my finger tips will start to hurt, most likely due
+to the switch being a linear switch and there&rsquo;s no dampening of the impact when I bottom out. On
+hindsight, it might help if I added O-rings.</p>
+<p>The other problem was it&rsquo;s just not comfortable to type on for long periods of time. When typing my
+two hands will be close to each other causing my wrist to be bent in an uncomfortable angle.</p>
+<p>The combination of this two issues lead me on a search for a more ergonomic keyboard.</p>
+<h3 id="ergodox-ez">Ergodox EZ</h3>
+<p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/ergodox-ez.jpg" alt="Ergodox EZ"  />
+</p>
+<p>This lead me to discover Ergodox EZ, a split ortholinear keyboard. This keyboard was not cheap but I
+bite the bullet and bought it in the name of ergonomics.</p>
+<p>It was amazing how much more comfortable the typing experience was compared to my previous keyboard.
+The fact that it was split solved the issue of my wrist, it being ortholinear also made it easier
+for me to touch type. The thumb keys were comfortable to use, it makes sense that we use our thumbs
+more, since it is one of our strongest fingers. With the traditional keyboard design, we were under
+utilizing out thumbs. The tenting and wrist rest made it comfortable as well.</p>
+<p>The only downside was some keys are far away and I have to shift my hand to reach them. Which made
+me interested in smaller form factor keyboards.</p>
+<h3 id="planck">Planck</h3>
+<p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/planck.jpg" alt="Planck"  />
+</p>
+<p>The planck is a 40% ortholinear keyboard which aims to minimize finger travel.</p>
+<p>I got this keyboard with the intention of it being my portable keyboard and trying out a smaller
+form factor, but I found
+the keyboard uncomfortable to use, because of the wist angle and the high profile, I would need a wrist
+rest to type more comfortably. I also found it hard to use due to the limited number of keys,
+somehow I had the great idea that it would be fine if I get the slightly bigger version of the planck.
+(Including the comfort issue)</p>
+<h3 id="preonic">Preonic</h3>
+<p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/preonic.jpg" alt="Preonic"  />
+</p>
+<p>The preonic is basically the planck but with an additional row of keys. I would say it has all the
+downsides of the planck, and whether the additional row of keys is a pro or con is really dependent
+on the user. Currently, since I&rsquo;ve already gotten used to using my 34 key keyboard, I would think
+that it is a con.</p>
+<h2 id="the-end-game">The End Game</h2>
+<p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/ferris.jpg" alt="Ferris"  />
+</p>
+<p>Based on the experience above, I concluded for a keyboard to be comfortable it has to fit these criteria.</p>
+<ul>
+<li>A split keyboard</li>
+<li>Ortholinear</li>
+<li>Low Profile/High Profile with wrist rest</li>
+<li>Small size to minimize finger travel</li>
+<li>Thumb keys</li>
+</ul>
+<p>The ferris meets all of those criteria and with the additional plus of it being rust related :).
+Initially I was worried about whether 34 keys is too little, so I changed my Ergodox EZ layout to
+only use 34 keys and I got used to it quite comfortably after awhile, so I went ahead and got the
+ferris.</p>
+<p>I got the ferris partially assembled so I just had to solder on the switches, it was my first time
+soldering and thankfully it all went smoothly. However, when I tested the keyboard, some keys were
+not working so I asked around in the Low Profile Keyboards discord group and Pierrec (the creator of
+the ferris) told me it was likely that some MCU pins were not soldered properly, he offered to fix
+it for me, but I decided to give it a shot and it turned out well, the keyboard works flawlessly
+now.</p>
+<p>The one thing that is special about the ferris is that each row of keys are not linearly aligned,
+they follow the natural curve of your fingers. It was weird at first, but now that I&rsquo;ve gotten used
+to it it feels much more comfortable than linearly aligned keys.</p>
+<p>After 6 months of using the ferris I don&rsquo;t have much to complain about, I&rsquo;ve optimized my layout to
+my liking as well, which I plan on going into in a later post. The only thing I want now is a better
+TRRS cable, my current one is quite ugly.</p>
+]]></content:encoded></item><item><title>Understanding rabin2 output</title><link>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</link><pubDate>Fri, 28 Feb 2020 00:00:00 +0000</pubDate><guid>https://dzhy.dev/posts/2020-02-28-understanding-rabin2-output/</guid><description>Prelude If you don&amp;rsquo;t know what rabin2 is/what it does.
 Rabin2 understands many file formats: Java CLASS, ELF, PE, Mach-O or any format supported by plugins, and it is able to obtain symbol import/exports, library dependencies, strings of data sections, xrefs, entrypoint address, sections, architecture type. [src]
 The binary info option of rabin2 outputs quite a lot of information, however there&amp;rsquo;s no explanation to what each of the values mean, they can be quite cryptic especially to those not familiar with reverse engineering.</description><content:encoded><![CDATA[<h2 id="prelude">Prelude</h2>
 <p>If you don&rsquo;t know what rabin2 is/what it does.</p>
