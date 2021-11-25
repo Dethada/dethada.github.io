@@ -14,7 +14,8 @@ tell you about why this is my endgame keyboard, I&rsquo;ll tell you about my pas
 to the switch being a linear switch and there&rsquo;s no dampening of the impact when I bottom out. On
 hindsight, it might help if I added O-rings.</p>
 <p>The other problem was it&rsquo;s just not comfortable to type on for long periods of time. When typing my
-two hands will be close to each other causing my wrist to be bent in an uncomfortable angle.</p>
+two hands will be close to each other causing my wrist to be bent in an uncomfortable angle. This is
+called ulnar deviation.</p>
 <p>The combination of this two issues lead me on a search for a more ergonomic keyboard.</p>
 <h3 id="ergodox-ez">Ergodox EZ</h3>
 <p><img loading="lazy" src="/2021-11-24-Comfort-with-a-34-key-Keyboard/ergodox-ez.jpg" alt="Ergodox EZ"  />
@@ -34,7 +35,7 @@ me interested in smaller form factor keyboards.</p>
 <p>The planck is a 40% ortholinear keyboard which aims to minimize finger travel.</p>
 <p>I got this keyboard with the intention of it being my portable keyboard and trying out a smaller
 form factor, but I found
-the keyboard uncomfortable to use, because of the wist angle and the high profile, I would need a wrist
+the keyboard uncomfortable to use, due to ulnar deviation and the high profile, I would need a wrist
 rest to type more comfortably. I also found it hard to use due to the limited number of keys,
 somehow I had the great idea that it would be fine if I get the slightly bigger version of the planck.
 (Including the comfort issue)</p>
@@ -66,9 +67,9 @@ not working so I asked around in the Low Profile Keyboards discord group and Pie
 the ferris) told me it was likely that some MCU pins were not soldered properly, he offered to fix
 it for me, but I decided to give it a shot and it turned out well, the keyboard works flawlessly
 now.</p>
-<p>The one thing that is special about the ferris is that each row of keys are not linearly aligned,
-they follow the natural curve of your fingers. It was weird at first, but now that I&rsquo;ve gotten used
-to it it feels much more comfortable than linearly aligned keys.</p>
+<p>The one thing that is special about the ferris is that it has column stagger, meaning each column of
+keys are shifted to different offsets to better match natural finger alignment.  It was weird at
+first, but now that I&rsquo;ve gotten used to it it feels much more comfortable than linearly aligned keys.</p>
 <p>After 6 months of using the ferris I don&rsquo;t have much to complain about, I&rsquo;ve optimized my layout to
 my liking as well, which I plan on going into in a later post. The only thing I want now is a better
 TRRS cable, my current one is quite ugly.</p>
