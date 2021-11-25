@@ -26,7 +26,8 @@ to the switch being a linear switch and there's no dampening of the impact when 
 hindsight, it might help if I added O-rings.
 
 The other problem was it's just not comfortable to type on for long periods of time. When typing my
-two hands will be close to each other causing my wrist to be bent in an uncomfortable angle.
+two hands will be close to each other causing my wrist to be bent in an uncomfortable angle. This is
+called ulnar deviation.
 
 The combination of this two issues lead me on a search for a more ergonomic keyboard.
 
@@ -52,7 +53,7 @@ The planck is a 40% ortholinear keyboard which aims to minimize finger travel.
 
 I got this keyboard with the intention of it being my portable keyboard and trying out a smaller
 form factor, but I found
-the keyboard uncomfortable to use, because of the wist angle and the high profile, I would need a wrist
+the keyboard uncomfortable to use, due to ulnar deviation and the high profile, I would need a wrist
 rest to type more comfortably. I also found it hard to use due to the limited number of keys,
 somehow I had the great idea that it would be fine if I get the slightly bigger version of the planck.
 (Including the comfort issue)
@@ -88,9 +89,9 @@ the ferris) told me it was likely that some MCU pins were not soldered properly,
 it for me, but I decided to give it a shot and it turned out well, the keyboard works flawlessly
 now.
 
-The one thing that is special about the ferris is that each row of keys are not linearly aligned,
-they follow the natural curve of your fingers. It was weird at first, but now that I've gotten used
-to it it feels much more comfortable than linearly aligned keys.
+The one thing that is special about the ferris is that it has column stagger, meaning each column of
+keys are shifted to different offsets to better match natural finger alignment.  It was weird at
+first, but now that I've gotten used to it it feels much more comfortable than linearly aligned keys.
 
 After 6 months of using the ferris I don't have much to complain about, I've optimized my layout to
 my liking as well, which I plan on going into in a later post. The only thing I want now is a better
