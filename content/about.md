@@ -3,6 +3,8 @@ title: "About Me"
 date: 2021-11-23T17:57:28+08:00
 showtoc: false
 hideMeta: true
+ShowBreadCrumbs: false
+searchHidden: true
 ---
 
 
